@@ -113,8 +113,7 @@ module Int8 = struct
   (* Utilities *)
   let trunc x = trunc_signed ~shift_left ~shift_right ~shift x [@@inline always]
 
-  let exn x =
-    exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
+  let exn x = exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
   [@@inline always]
   ;;
 
@@ -127,8 +126,7 @@ module Int8 = struct
   let of_int16_trunc x = trunc x [@@inline always]
   let of_int16_exn x = exn x [@@inline always]
 
-  let of_int32_trunc x =
-    trunc (Base.Int32.to_int_trunc (Repr32.to_int32 x))
+  let of_int32_trunc x = trunc (Base.Int32.to_int_trunc (Repr32.to_int32 x))
   [@@inline always]
   ;;
 
@@ -167,8 +165,7 @@ module Uint8 = struct
   (* Utilities *)
   let trunc x = trunc_unsigned ~conv:Fun.id ~logand ~mask x [@@inline always]
 
-  let exn x =
-    exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
+  let exn x = exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
   [@@inline always]
   ;;
 
@@ -225,8 +222,7 @@ module Int16 = struct
   (* Utilities *)
   let trunc x = trunc_signed ~shift_left ~shift_right ~shift x [@@inline always]
 
-  let exn x =
-    exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
+  let exn x = exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
   [@@inline always]
   ;;
 
@@ -238,8 +234,7 @@ module Int16 = struct
   (* Same-signedness conversions. *)
   let of_int8 x = x [@@inline always]
 
-  let of_int32_trunc x =
-    trunc (Base.Int32.to_int_trunc (Repr32.to_int32 x))
+  let of_int32_trunc x = trunc (Base.Int32.to_int_trunc (Repr32.to_int32 x))
   [@@inline always]
   ;;
 
@@ -278,8 +273,7 @@ module Uint16 = struct
   (* Utilities *)
   let trunc x = trunc_unsigned ~conv:Fun.id ~logand ~mask x [@@inline always]
 
-  let exn x =
-    exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
+  let exn x = exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
   [@@inline always]
   ;;
 
@@ -390,8 +384,7 @@ end = struct
       (* Utilities *)
       let trunc x = trunc_signed ~shift_left ~shift_right ~shift x [@@inline always]
 
-      let exn x =
-        exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
+      let exn x = exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
       [@@inline always]
       ;;
 
@@ -436,13 +429,11 @@ end = struct
       (* Utilities *)
       let trunc x = trunc_unsigned ~conv:Fun.id ~logand ~mask x [@@inline always]
 
-      let exn x =
-        exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
+      let exn x = exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
       [@@inline always]
       ;;
 
-      let trunc64 x =
-        trunc_unsigned ~conv ~logand:logand64 ~mask:mask64 x
+      let trunc64 x = trunc_unsigned ~conv ~logand:logand64 ~mask:mask64 x
       [@@inline always]
       ;;
 
@@ -563,8 +554,7 @@ end = struct
       [@@inline always]
       ;;
 
-      let to_base_int64 x =
-        Base.Int64.( land ) (Base.Int32.to_int64 x) 0xFFFFFFFFL
+      let to_base_int64 x = Base.Int64.( land ) (Base.Int32.to_int64 x) 0xFFFFFFFFL
       [@@inline always]
       ;;
 
@@ -572,8 +562,7 @@ end = struct
       let of_uint8 x = Base.Int32.of_int_trunc (x : Uint8.t :> int) [@@inline always]
       let of_uint16 x = Base.Int32.of_int_trunc (x : Uint16.t :> int) [@@inline always]
 
-      let of_uint63_trunc x =
-        of_base_int64_trunc (Base.Int63.to_int64 x)
+      let of_uint63_trunc x = of_base_int64_trunc (Base.Int63.to_int64 x)
       [@@inline always]
       ;;
 
@@ -632,8 +621,7 @@ module Int63 = struct
   (* Same-width conversions. *)
   let of_uint63_trunc x = x [@@inline always]
 
-  let of_uint63_exn x =
-    identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
+  let of_uint63_exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
   [@@inline always]
   ;;
 end
@@ -658,8 +646,7 @@ module Uint63 = struct
   let to_string = Base.Int63.to_string
 
   (* Utilities *)
-  let exn x =
-    identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
+  let exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
   [@@inline always]
   ;;
 
@@ -673,8 +660,7 @@ module Uint63 = struct
   [@@inline always]
   ;;
 
-  let to_base_int64 x =
-    Base.Int64.( land ) (Base.Int63.to_int64 x) 0x7FFFFFFFFFFFFFFFL
+  let to_base_int64 x = Base.Int64.( land ) (Base.Int63.to_int64 x) 0x7FFFFFFFFFFFFFFFL
   [@@inline always]
   ;;
 
@@ -719,8 +705,7 @@ module Int64 = struct
   (* Same-width conversions. *)
   let of_uint64_trunc x = x [@@inline always]
 
-  let of_uint64_exn x =
-    identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
+  let of_uint64_exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
   [@@inline always]
   ;;
 end
@@ -741,8 +726,7 @@ module Uint64 = struct
   let to_string = Base.Int64.to_string
 
   (* Utilities *)
-  let exn x =
-    identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
+  let exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
   [@@inline always]
   ;;
 
