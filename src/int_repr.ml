@@ -1,11 +1,26 @@
 module type T = sig
-  type t [@@deriving compare, equal, hash, sexp, typerep]
+  type t [@@deriving compare, equal, hash, quickcheck, sexp, typerep]
 
   val signed : bool
   val num_bits : int
+  val num_bytes : int
   val zero : t
   val min_value : t
   val max_value : t
+
+  include Ppx_hash_lib.Hashable.S with type t := t
+  include Base.Comparisons.S with type t := t
+
+  module O : sig
+    include Base.Comparisons.Infix with type t := t
+
+    module Wrap : sig
+      val ( + ) : t -> t -> t
+      val ( - ) : t -> t -> t
+      val ( * ) : t -> t -> t
+      val ( / ) : t -> t -> t
+    end
+  end
 
 end
 
@@ -65,6 +80,10 @@ let identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x =
 [@@inline always]
 ;;
 
+let of_sexp_error what sexp =
+  raise (Sexplib0.Sexp_conv.Of_sexp_error (Failure what, sexp))
+;;
+
 module Repr32 = struct
   include Stdlib.Sys.Immediate64.Make (Base.Int) (Base.Int32)
 
@@ -97,6 +116,13 @@ type uint64 = Base.Int64.t
 module Int8 = struct
   type t = Base.Int.t [@@immediate] [@@deriving compare, equal, hash, sexp]
 
+  include Base.Comparable.Make [@inlined] (struct
+      type nonrec t = t
+
+      let compare = compare
+      let sexp_of_t = sexp_of_t
+    end)
+
   let typerep_of_t = Typerep_lib.Std.typerep_of_int
   let typename_of_t = Typerep_lib.Std.typename_of_int
   let zero = Base.Int.zero
@@ -104,6 +130,7 @@ module Int8 = struct
   let max_value = 127
   let signed = true
   let num_bits = 8
+  let num_bytes = 1
   let shift_left = Base.Int.shift_left
   let shift_right = Base.Int.shift_right
   let shift = Base.Int.num_bits - num_bits
@@ -137,12 +164,47 @@ module Int8 = struct
   let of_int64_exn x = exn (Base.Int64.to_int_exn x) [@@inline always]
 
   (* Same-width conversions. *)
-  let of_uint8_trunc x = trunc x [@@inline always]
+  let of_uint8_wrap x = trunc x [@@inline always]
   let of_uint8_exn x = exn x [@@inline always]
+
+  (* Miscellaneous *)
+  let quickcheck_generator = Base_quickcheck.Generator.int_inclusive min_value max_value
+
+  let quickcheck_observer =
+    Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+  ;;
+
+  let quickcheck_shrinker =
+    Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
+      equal x (trunc x))
+  ;;
+
+  module O = struct
+    let ( >= ) = Base.Int.( >= )
+    let ( <= ) = Base.Int.( <= )
+    let ( = ) = Base.Int.( = )
+    let ( > ) = Base.Int.( > )
+    let ( < ) = Base.Int.( < )
+    let ( <> ) = Base.Int.( <> )
+
+    module Wrap = struct
+      let ( + ) x y = trunc (Base.Int.( + ) x y)
+      let ( - ) x y = trunc (Base.Int.( - ) x y)
+      let ( * ) x y = trunc (Base.Int.( * ) x y)
+      let ( / ) x y = trunc (Base.Int.( / ) x y)
+    end
+  end
 end
 
 module Uint8 = struct
   type t = Base.Int.t [@@immediate] [@@deriving compare, equal, hash, sexp]
+
+  include Base.Comparable.Make [@inlined] (struct
+      type nonrec t = t
+
+      let compare = compare
+      let sexp_of_t = sexp_of_t
+    end)
 
   let typerep_of_t = Typerep_lib.Std.typerep_of_int
   let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -151,6 +213,7 @@ module Uint8 = struct
   let max_value = 255
   let signed = false
   let num_bits = 8
+  let num_bytes = 1
   let conv = Base.Int64.to_int_trunc
   let logand = Base.Int.( land )
   let logand64 = Base.Int64.( land )
@@ -199,12 +262,47 @@ module Uint8 = struct
   let of_uint64_exn x = exn64 x [@@inline always]
 
   (* Same-width conversions. *)
-  let of_int8_trunc x = trunc x [@@inline always]
+  let of_int8_wrap x = trunc x [@@inline always]
   let of_int8_exn x = exn x [@@inline always]
+
+  (* Miscellaneous *)
+  let quickcheck_generator = Base_quickcheck.Generator.int_inclusive min_value max_value
+
+  let quickcheck_observer =
+    Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+  ;;
+
+  let quickcheck_shrinker =
+    Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
+      equal x (trunc x))
+  ;;
+
+  module O = struct
+    let ( >= ) = Base.Int.( >= )
+    let ( <= ) = Base.Int.( <= )
+    let ( = ) = Base.Int.( = )
+    let ( > ) = Base.Int.( > )
+    let ( < ) = Base.Int.( < )
+    let ( <> ) = Base.Int.( <> )
+
+    module Wrap = struct
+      let ( + ) x y = trunc (Base.Int.( + ) x y)
+      let ( - ) x y = trunc (Base.Int.( - ) x y)
+      let ( * ) x y = trunc (Base.Int.( * ) x y)
+      let ( / ) x y = trunc (Base.Int.( / ) x y)
+    end
+  end
 end
 
 module Int16 = struct
   type t = Base.Int.t [@@immediate] [@@deriving compare, equal, hash, sexp]
+
+  include Base.Comparable.Make [@inlined] (struct
+      type nonrec t = t
+
+      let compare = compare
+      let sexp_of_t = sexp_of_t
+    end)
 
   let typerep_of_t = Typerep_lib.Std.typerep_of_int
   let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -213,6 +311,7 @@ module Int16 = struct
   let max_value = 32767
   let signed = true
   let num_bits = 16
+  let num_bytes = 2
   let shift_left = Base.Int.shift_left
   let shift_right = Base.Int.shift_right
   let shift = Base.Int.num_bits - num_bits
@@ -245,12 +344,47 @@ module Int16 = struct
   let of_int64_exn x = exn (Base.Int64.to_int_exn x) [@@inline always]
 
   (* Same-width conversions. *)
-  let of_uint16_trunc x = trunc x [@@inline always]
+  let of_uint16_wrap x = trunc x [@@inline always]
   let of_uint16_exn x = exn x [@@inline always]
+
+  (* Miscellaneous *)
+  let quickcheck_generator = Base_quickcheck.Generator.int_inclusive min_value max_value
+
+  let quickcheck_observer =
+    Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+  ;;
+
+  let quickcheck_shrinker =
+    Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
+      equal x (trunc x))
+  ;;
+
+  module O = struct
+    let ( >= ) = Base.Int.( >= )
+    let ( <= ) = Base.Int.( <= )
+    let ( = ) = Base.Int.( = )
+    let ( > ) = Base.Int.( > )
+    let ( < ) = Base.Int.( < )
+    let ( <> ) = Base.Int.( <> )
+
+    module Wrap = struct
+      let ( + ) x y = trunc (Base.Int.( + ) x y)
+      let ( - ) x y = trunc (Base.Int.( - ) x y)
+      let ( * ) x y = trunc (Base.Int.( * ) x y)
+      let ( / ) x y = trunc (Base.Int.( / ) x y)
+    end
+  end
 end
 
 module Uint16 = struct
   type t = Base.Int.t [@@immediate] [@@deriving compare, equal, hash, sexp]
+
+  include Base.Comparable.Make [@inlined] (struct
+      type nonrec t = t
+
+      let compare = compare
+      let sexp_of_t = sexp_of_t
+    end)
 
   let typerep_of_t = Typerep_lib.Std.typerep_of_int
   let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -259,6 +393,7 @@ module Uint16 = struct
   let max_value = 65535
   let signed = false
   let num_bits = 16
+  let num_bytes = 2
   let conv = Base.Int64.to_int_trunc
   let logand = Base.Int.( land )
   let logand64 = Base.Int64.( land )
@@ -306,8 +441,36 @@ module Uint16 = struct
   let of_uint64_exn x = exn64 x [@@inline always]
 
   (* Same-width conversions. *)
-  let of_int16_trunc x = trunc x [@@inline always]
+  let of_int16_wrap x = trunc x [@@inline always]
   let of_int16_exn x = exn x [@@inline always]
+
+  (* Miscellaneous *)
+  let quickcheck_generator = Base_quickcheck.Generator.int_inclusive min_value max_value
+
+  let quickcheck_observer =
+    Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+  ;;
+
+  let quickcheck_shrinker =
+    Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
+      equal x (trunc x))
+  ;;
+
+  module O = struct
+    let ( >= ) = Base.Int.( >= )
+    let ( <= ) = Base.Int.( <= )
+    let ( = ) = Base.Int.( = )
+    let ( > ) = Base.Int.( > )
+    let ( < ) = Base.Int.( < )
+    let ( <> ) = Base.Int.( <> )
+
+    module Wrap = struct
+      let ( + ) x y = trunc (Base.Int.( + ) x y)
+      let ( - ) x y = trunc (Base.Int.( - ) x y)
+      let ( * ) x y = trunc (Base.Int.( * ) x y)
+      let ( / ) x y = trunc (Base.Int.( / ) x y)
+    end
+  end
 end
 
 module type Backend32_S = sig
@@ -329,7 +492,7 @@ module type Backend32_S = sig
     val of_int64_exn : int64 -> t
 
     (* Same-width conversions. *)
-    val of_uint32_trunc : uint32 -> t
+    val of_uint32_wrap : uint32 -> t
     val of_uint32_exn : uint32 -> t
   end
 
@@ -346,6 +509,7 @@ module type Backend32_S = sig
     val of_base_int64_trunc : Base.Int64.t -> t
     val of_base_int64_exn : Base.Int64.t -> t
     val to_base_int64 : t -> Base.Int64.t
+    val to_base_int_exn : t -> Base.Int.t
 
     (* Same-signedness conversions. *)
     val of_uint8 : uint8 -> t
@@ -356,7 +520,7 @@ module type Backend32_S = sig
     val of_uint64_exn : uint64 -> t
 
     (* Same-width conversions. *)
-    val of_int32_trunc : int32 -> t
+    val of_int32_wrap : int32 -> t
     val of_int32_exn : int32 -> t
   end
 end
@@ -368,6 +532,13 @@ end = struct
     module Signed = struct
       type t = Base.Int.t [@@immediate] [@@deriving compare, equal, hash, sexp]
 
+      include Base.Comparable.Make [@inlined] (struct
+          type nonrec t = t
+
+          let compare = compare
+          let sexp_of_t = sexp_of_t
+        end)
+
       let typerep_of_t = Typerep_lib.Std.typerep_of_int
       let typename_of_t = Typerep_lib.Std.typename_of_int
       let zero = Base.Int.zero
@@ -375,6 +546,7 @@ end = struct
       let max_value = Base.Int32.to_int_trunc Base.Int32.max_value
       let signed = true
       let num_bits = 32
+      let num_bytes = 4
       let shift_left = Base.Int.shift_left
       let shift_right = Base.Int.shift_right
       let shift = Base.Int.num_bits - num_bits
@@ -401,12 +573,49 @@ end = struct
       let of_int64_exn x = exn (Base.Int64.to_int_exn x) [@@inline always]
 
       (* Same-width conversions. *)
-      let of_uint32_trunc x = trunc x
+      let of_uint32_wrap x = trunc x
       let of_uint32_exn x = exn x
+
+      (* Miscellaneous *)
+      let quickcheck_generator =
+        Base_quickcheck.Generator.int_inclusive min_value max_value
+      ;;
+
+      let quickcheck_observer =
+        Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+      ;;
+
+      let quickcheck_shrinker =
+        Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
+          equal x (trunc x))
+      ;;
+
+      module O = struct
+        let ( >= ) = Base.Int.( >= )
+        let ( <= ) = Base.Int.( <= )
+        let ( = ) = Base.Int.( = )
+        let ( > ) = Base.Int.( > )
+        let ( < ) = Base.Int.( < )
+        let ( <> ) = Base.Int.( <> )
+
+        module Wrap = struct
+          let ( + ) x y = trunc (Base.Int.( + ) x y)
+          let ( - ) x y = trunc (Base.Int.( - ) x y)
+          let ( * ) x y = trunc (Base.Int.( * ) x y)
+          let ( / ) x y = trunc (Base.Int.( / ) x y)
+        end
+      end
     end
 
     module Unsigned = struct
       type t = Base.Int.t [@@immediate] [@@deriving compare, equal, hash, sexp]
+
+      include Base.Comparable.Make [@inlined] (struct
+          type nonrec t = t
+
+          let compare = compare
+          let sexp_of_t = sexp_of_t
+        end)
 
       let typerep_of_t = Typerep_lib.Std.typerep_of_int
       let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -415,6 +624,7 @@ end = struct
       let max_value = Base.Int.of_int64_trunc 4294967295L
       let signed = false
       let num_bits = 32
+      let num_bytes = 4
       let conv = Base.Int64.to_int_trunc
       let logand = Base.Int.( land )
       let logand64 = Base.Int64.( land )
@@ -450,7 +660,11 @@ end = struct
       ;;
 
       (* "Base" conversions. *)
-      let of_base_int32_trunc x = trunc (Base.Int32.to_int_trunc x) [@@inline always]
+      let of_base_int32_trunc x =
+        Base.Int64.to_int_trunc (logand64 (Base.Int64.of_int32 x) mask64)
+      [@@inline always]
+      ;;
+
       let of_base_int32_exn x = exn (Base.Int32.to_int_trunc x) [@@inline always]
       let to_base_int32_trunc x = Base.Int.to_int32_trunc x [@@inline always]
 
@@ -464,6 +678,7 @@ end = struct
       let of_base_int64_trunc x = trunc64 x [@@inline always]
       let of_base_int64_exn x = exn64 x [@@inline always]
       let to_base_int64 x = Base.Int.to_int64 x [@@inline always]
+      let to_base_int_exn x = x [@@inline always]
 
       (* Same-signedness conversions. *)
       let of_uint8 x = (x : Uint8.t :> int) [@@inline always]
@@ -474,8 +689,38 @@ end = struct
       let of_uint64_exn x = exn64 x [@@inline always]
 
       (* Same-width conversions. *)
-      let of_int32_trunc x = trunc x [@@inline always]
+      let of_int32_wrap x = trunc x [@@inline always]
       let of_int32_exn x = exn x [@@inline always]
+
+      (* Miscellaneous *)
+      let quickcheck_generator =
+        Base_quickcheck.Generator.int_inclusive min_value max_value
+      ;;
+
+      let quickcheck_observer =
+        Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+      ;;
+
+      let quickcheck_shrinker =
+        Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
+          equal x (trunc x))
+      ;;
+
+      module O = struct
+        let ( >= ) = Base.Int.( >= )
+        let ( <= ) = Base.Int.( <= )
+        let ( = ) = Base.Int.( = )
+        let ( > ) = Base.Int.( > )
+        let ( < ) = Base.Int.( < )
+        let ( <> ) = Base.Int.( <> )
+
+        module Wrap = struct
+          let ( + ) x y = trunc (Base.Int.( + ) x y)
+          let ( - ) x y = trunc (Base.Int.( - ) x y)
+          let ( * ) x y = trunc (Base.Int.( * ) x y)
+          let ( / ) x y = trunc (Base.Int.( / ) x y)
+        end
+      end
     end
   end
 
@@ -483,6 +728,16 @@ end = struct
     module Signed = struct
       type t = Base.Int32.t [@@deriving compare, equal, hash, sexp]
 
+      include Base.Comparable.Make [@inlined] (struct
+          type nonrec t = t
+
+          let compare = compare
+          let sexp_of_t = sexp_of_t
+        end)
+
+      let quickcheck_generator = Base_quickcheck.quickcheck_generator_int32
+      let quickcheck_observer = Base_quickcheck.quickcheck_observer_int32
+      let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int32
       let typerep_of_t = Typerep_lib.Std.typerep_of_int32
       let typename_of_t = Typerep_lib.Std.typename_of_int32
       let zero = Base.Int32.zero
@@ -490,6 +745,7 @@ end = struct
       let max_value = Base.Int32.max_value
       let signed = true
       let num_bits = 32
+      let num_bytes = 4
       let mod_name = "Int32"
       let greater_equal = Base.Int32.( >= )
       let to_string = Base.Int32.to_string
@@ -507,17 +763,36 @@ end = struct
       let of_int64_exn x = Base.Int64.to_int32_exn x [@@inline always]
 
       (* Same-width conversions. *)
-      let of_uint32_trunc x = x [@@inline always]
+      let of_uint32_wrap x = x [@@inline always]
 
       let of_uint32_exn x : t =
         identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
       [@@inline always]
       ;;
+
+      module O = struct
+        let ( >= ) = Base.Int32.( >= )
+        let ( <= ) = Base.Int32.( <= )
+        let ( = ) = Base.Int32.( = )
+        let ( > ) = Base.Int32.( > )
+        let ( < ) = Base.Int32.( < )
+        let ( <> ) = Base.Int32.( <> )
+
+        module Wrap = struct
+          let ( + ) = Base.Int32.( + )
+          let ( - ) = Base.Int32.( - )
+          let ( * ) = Base.Int32.( * )
+          let ( / ) = Base.Int32.( / )
+        end
+      end
     end
 
     module Unsigned = struct
-      type t = Base.Int32.t [@@deriving equal, hash, sexp]
+      type t = Base.Int32.t [@@deriving equal, hash]
 
+      let quickcheck_generator = Base_quickcheck.quickcheck_generator_int32
+      let quickcheck_observer = Base_quickcheck.quickcheck_observer_int32
+      let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int32
       let compare x y = Stdlib.Int32.unsigned_compare x y [@@inline always]
       let typerep_of_t = Typerep_lib.Std.typerep_of_int32
       let typename_of_t = Typerep_lib.Std.typename_of_int32
@@ -526,6 +801,7 @@ end = struct
       let max_value = -1l
       let signed = false
       let num_bits = 32
+      let num_bytes = 4
       let mod_name = "Uint32"
       let greater_equal = Base.Int32.( >= )
       let to_string = Base.Int32.to_string
@@ -558,6 +834,12 @@ end = struct
       [@@inline always]
       ;;
 
+      let to_base_int_exn x =
+        identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
+        |> Base.Int32.to_int_exn
+      [@@inline always]
+      ;;
+
       (* Same-signedness conversions. *)
       let of_uint8 x = Base.Int32.of_int_trunc (x : Uint8.t :> int) [@@inline always]
       let of_uint16 x = Base.Int32.of_int_trunc (x : Uint16.t :> int) [@@inline always]
@@ -571,12 +853,46 @@ end = struct
       let of_uint64_exn x = of_base_int64_exn x [@@inline always]
 
       (* Same-width conversions. *)
-      let of_int32_trunc x = x [@@inline always]
+      let of_int32_wrap x = x [@@inline always]
 
       let of_int32_exn x =
         identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
       [@@inline always]
       ;;
+
+      (* Sexp conversions. *)
+      let sexp_of_t x = Base.Sexp.Atom (Stdlib.Printf.sprintf "%lu" x)
+
+      let t_of_sexp sexp =
+        match sexp with
+        | Base.Sexp.List _ -> of_sexp_error "Int_repr.Uint32.t_of_sexp: atom needed" sexp
+        | Base.Sexp.Atom s ->
+          (try Caml.Scanf.sscanf s "%lu" Fun.id with
+           | _ -> of_sexp_error "Int_repr.Uint32.t_of_sexp: integer atom needed" sexp)
+      ;;
+
+      module O = struct
+        let ( >= ) x y = compare x y >= 0
+        let ( <= ) x y = compare x y <= 0
+        let ( = ) x y = compare x y = 0
+        let ( > ) x y = compare x y > 0
+        let ( < ) x y = compare x y < 0
+        let ( <> ) x y = compare x y <> 0
+
+        module Wrap = struct
+          let ( + ) = Base.Int32.( + )
+          let ( - ) = Base.Int32.( - )
+          let ( * ) = Base.Int32.( * )
+          let ( / ) = Stdlib.Int32.unsigned_div
+        end
+      end
+
+      include Base.Comparable.Make [@inlined] (struct
+          type nonrec t = t
+
+          let compare = compare
+          let sexp_of_t = sexp_of_t
+        end)
     end
   end
 
@@ -600,6 +916,16 @@ end
 module Int63 = struct
   type t = Base.Int63.t [@@immediate64] [@@deriving compare, equal, hash, sexp]
 
+  include Base.Comparable.Make [@inlined] (struct
+      type nonrec t = t
+
+      let compare = compare
+      let sexp_of_t = sexp_of_t
+    end)
+
+  let quickcheck_generator = Base_quickcheck.Generator.int63_uniform
+  let quickcheck_observer = Base_quickcheck.Observer.int63
+  let quickcheck_shrinker = Base_quickcheck.Shrinker.int63
   let typerep_of_t = Typerep_lib.Std.typerep_of_int63
   let typename_of_t = Typerep_lib.Std.typename_of_int63
   let zero = Base.Int63.zero
@@ -607,6 +933,7 @@ module Int63 = struct
   let max_value = Base.Int63.max_value
   let signed = true
   let num_bits = 63
+  let num_bytes = 8
   let mod_name = "Int63"
   let greater_equal = Base.Int63.( >= )
   let to_string = Base.Int63.to_string
@@ -619,15 +946,35 @@ module Int63 = struct
   let of_int64_exn x = Base.Int63.of_int64_exn x [@@inline always]
 
   (* Same-width conversions. *)
-  let of_uint63_trunc x = x [@@inline always]
+  let of_uint63_wrap x = x [@@inline always]
 
   let of_uint63_exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
   [@@inline always]
   ;;
+
+  module O = struct
+    let ( >= ) = Base.Int63.( >= )
+    let ( <= ) = Base.Int63.( <= )
+    let ( = ) = Base.Int63.( = )
+    let ( > ) = Base.Int63.( > )
+    let ( < ) = Base.Int63.( < )
+    let ( <> ) = Base.Int63.( <> )
+
+    module Wrap = struct
+      let ( + ) = Base.Int63.( + )
+      let ( - ) = Base.Int63.( - )
+      let ( * ) = Base.Int63.( * )
+      let ( / ) = Base.Int63.( / )
+    end
+  end
 end
 
 module Uint63 = struct
-  type t = Base.Int63.t [@@deriving equal, hash, sexp]
+  type t = Base.Int63.t [@@deriving equal, hash]
+
+  let quickcheck_generator = Base_quickcheck.Generator.int63_uniform
+  let quickcheck_observer = Base_quickcheck.Observer.int63
+  let quickcheck_shrinker = Base_quickcheck.Shrinker.int63
 
   let compare x y =
     (* x and y are sign-extended, which preserves the high bit *)
@@ -641,6 +988,7 @@ module Uint63 = struct
   let max_value = Base.Int63.of_int64_trunc 9223372036854775807L
   let signed = false
   let num_bits = 63
+  let num_bytes = 8
   let greater_equal = Base.Int63.( >= )
   let mod_name = "Uint63"
   let to_string = Base.Int63.to_string
@@ -678,13 +1026,60 @@ module Uint63 = struct
   ;;
 
   (* Same-width conversions. *)
-  let of_int63_trunc x = x [@@inline always]
+  let of_int63_wrap x = x [@@inline always]
   let of_int63_exn x = exn x [@@inline always]
+
+  (* Sexp conversions. *)
+  let sexp_of_t x = Base.Sexp.Atom (Stdlib.Printf.sprintf "%Lu" (to_base_int64 x))
+
+  let t_of_sexp sexp =
+    match sexp with
+    | Base.Sexp.List _ -> of_sexp_error "Int_repr.Uint63.t_of_sexp: atom needed" sexp
+    | Base.Sexp.Atom s ->
+      (try Caml.Scanf.sscanf s "%Lu" of_base_int64_exn with
+       | _ -> of_sexp_error "Int_repr.Uint63.t_of_sexp: integer atom needed" sexp)
+  ;;
+
+  module O = struct
+    let ( >= ) x y = compare x y >= 0
+    let ( <= ) x y = compare x y <= 0
+    let ( = ) x y = compare x y = 0
+    let ( > ) x y = compare x y > 0
+    let ( < ) x y = compare x y < 0
+    let ( <> ) x y = compare x y <> 0
+
+    module Wrap = struct
+      let ( + ) = Base.Int63.( + )
+      let ( - ) = Base.Int63.( - )
+      let ( * ) = Base.Int63.( * )
+
+      let ( / ) x y =
+        of_base_int64_trunc (Base.Int64.( / ) (to_base_int64 x) (to_base_int64 y))
+      ;;
+    end
+  end
+
+  include Base.Comparable.Make [@inlined] (struct
+      type nonrec t = t
+
+      let compare = compare
+      let sexp_of_t = sexp_of_t
+    end)
 end
 
 module Int64 = struct
   type t = Base.Int64.t [@@deriving compare, equal, hash, sexp]
 
+  include Base.Comparable.Make [@inlined] (struct
+      type nonrec t = t
+
+      let compare = compare
+      let sexp_of_t = sexp_of_t
+    end)
+
+  let quickcheck_generator = Base_quickcheck.quickcheck_generator_int64
+  let quickcheck_observer = Base_quickcheck.quickcheck_observer_int64
+  let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int64
   let typerep_of_t = Typerep_lib.Std.typerep_of_int64
   let typename_of_t = Typerep_lib.Std.typename_of_int64
   let zero = Base.Int64.zero
@@ -692,6 +1087,7 @@ module Int64 = struct
   let max_value = Base.Int64.max_value
   let signed = true
   let num_bits = 64
+  let num_bytes = 8
   let mod_name = "Int64"
   let greater_equal = Base.Int64.( >= )
   let to_string = Base.Int64.to_string
@@ -703,16 +1099,35 @@ module Int64 = struct
   let of_int63 x = Base.Int63.to_int64 x [@@inline always]
 
   (* Same-width conversions. *)
-  let of_uint64_trunc x = x [@@inline always]
+  let of_uint64_wrap x = x [@@inline always]
 
   let of_uint64_exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
   [@@inline always]
   ;;
+
+  module O = struct
+    let ( >= ) = Base.Int64.( >= )
+    let ( <= ) = Base.Int64.( <= )
+    let ( = ) = Base.Int64.( = )
+    let ( > ) = Base.Int64.( > )
+    let ( < ) = Base.Int64.( < )
+    let ( <> ) = Base.Int64.( <> )
+
+    module Wrap = struct
+      let ( + ) = Base.Int64.( + )
+      let ( - ) = Base.Int64.( - )
+      let ( * ) = Base.Int64.( * )
+      let ( / ) = Base.Int64.( / )
+    end
+  end
 end
 
 module Uint64 = struct
-  type t = Base.Int64.t [@@deriving equal, hash, sexp]
+  type t = Base.Int64.t [@@deriving equal, hash]
 
+  let quickcheck_generator = Base_quickcheck.quickcheck_generator_int64
+  let quickcheck_observer = Base_quickcheck.quickcheck_observer_int64
+  let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int64
   let compare = Stdlib.Int64.unsigned_compare
   let typerep_of_t = Typerep_lib.Std.typerep_of_int64
   let typename_of_t = Typerep_lib.Std.typename_of_int64
@@ -721,6 +1136,7 @@ module Uint64 = struct
   let max_value = -1L
   let signed = false
   let num_bits = 64
+  let num_bytes = 8
   let greater_equal = Base.Int64.( >= )
   let mod_name = "Uint64"
   let to_string = Base.Int64.to_string
@@ -747,8 +1163,42 @@ module Uint64 = struct
   ;;
 
   (* Same-width conversions. *)
-  let of_int64_trunc x = x [@@inline always]
+  let of_int64_wrap x = x [@@inline always]
   let of_int64_exn x = exn x [@@inline always]
+
+  (* Sexp conversions. *)
+  let sexp_of_t x = Base.Sexp.Atom (Stdlib.Printf.sprintf "%Lu" x)
+
+  let t_of_sexp sexp =
+    match sexp with
+    | Base.Sexp.List _ -> of_sexp_error "Int_repr.Uint64.t_of_sexp: atom needed" sexp
+    | Base.Sexp.Atom s ->
+      (try Caml.Scanf.sscanf s "%Lu" Fun.id with
+       | _ -> of_sexp_error "Int_repr.Uint64.t_of_sexp: integer atom needed" sexp)
+  ;;
+
+  module O = struct
+    let ( >= ) x y = compare x y >= 0
+    let ( <= ) x y = compare x y <= 0
+    let ( = ) x y = compare x y = 0
+    let ( > ) x y = compare x y > 0
+    let ( < ) x y = compare x y < 0
+    let ( <> ) x y = compare x y <> 0
+
+    module Wrap = struct
+      let ( + ) = Base.Int64.( + )
+      let ( - ) = Base.Int64.( - )
+      let ( * ) = Base.Int64.( * )
+      let ( / ) = Stdlib.Int64.unsigned_div
+    end
+  end
+
+  include Base.Comparable.Make [@inlined] (struct
+      type nonrec t = t
+
+      let compare = compare
+      let sexp_of_t = sexp_of_t
+    end)
 end
 
 module type Get = sig
@@ -949,7 +1399,7 @@ module Make_set (F : Set_functions) : Set with type t := F.t = struct
 
   (* 8-bit signed values *)
 
-  let set_int8 t ~pos x = set_uint8 t ~pos (Uint8.of_int8_trunc x)
+  let set_int8 t ~pos x = set_uint8 t ~pos (Uint8.of_int8_wrap x)
 
   (* 16-bit unsigned values *)
 
@@ -965,8 +1415,8 @@ module Make_set (F : Set_functions) : Set with type t := F.t = struct
 
   (* 16-bit signed values *)
 
-  let set_int16_le t ~pos x = set_uint16_le t ~pos (Uint16.of_int16_trunc x)
-  let set_int16_be t ~pos x = set_uint16_be t ~pos (Uint16.of_int16_trunc x)
+  let set_int16_le t ~pos x = set_uint16_le t ~pos (Uint16.of_int16_wrap x)
+  let set_int16_be t ~pos x = set_uint16_be t ~pos (Uint16.of_int16_wrap x)
 
   (* 32-bit signed values *)
 
@@ -984,8 +1434,8 @@ module Make_set (F : Set_functions) : Set with type t := F.t = struct
 
   (* 32-bit unsigned values *)
 
-  let set_uint32_le t ~pos x = set_int32_le t ~pos (Int32.of_uint32_trunc x)
-  let set_uint32_be t ~pos x = set_int32_be t ~pos (Int32.of_uint32_trunc x)
+  let set_uint32_le t ~pos x = set_int32_le t ~pos (Int32.of_uint32_wrap x)
+  let set_uint32_be t ~pos x = set_int32_be t ~pos (Int32.of_uint32_wrap x)
 
   (* 64-bit signed values *)
 
@@ -1001,8 +1451,8 @@ module Make_set (F : Set_functions) : Set with type t := F.t = struct
 
   (* 64-bit unsigned values *)
 
-  let set_uint64_le t ~pos x = set_int64_le t ~pos (Int64.of_uint64_trunc x)
-  let set_uint64_be t ~pos x = set_int64_be t ~pos (Int64.of_uint64_trunc x)
+  let set_uint64_le t ~pos x = set_int64_le t ~pos (Int64.of_uint64_wrap x)
+  let set_uint64_be t ~pos x = set_int64_be t ~pos (Int64.of_uint64_wrap x)
 end
 [@@inline always]
 

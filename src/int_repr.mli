@@ -1,11 +1,26 @@
 module type T = sig
-  type t [@@deriving compare, equal, hash, sexp, typerep]
+  type t [@@deriving compare, equal, hash, quickcheck, sexp, typerep]
 
   val signed : bool
   val num_bits : int
+  val num_bytes : int
   val zero : t
   val min_value : t
   val max_value : t
+
+  include Ppx_hash_lib.Hashable.S with type t := t
+  include Base.Comparisons.S with type t := t
+
+  module O : sig
+    include Base.Comparisons.Infix with type t := t
+
+    module Wrap : sig
+      val ( + ) : t -> t -> t
+      val ( - ) : t -> t -> t
+      val ( * ) : t -> t -> t
+      val ( / ) : t -> t -> t
+    end
+  end
 
 end
 
@@ -41,7 +56,7 @@ module Int8 : sig
   val of_int64_exn : int64 -> t
 
   (* Same-width conversions. *)
-  val of_uint8_trunc : uint8 -> t
+  val of_uint8_wrap : uint8 -> t
   val of_uint8_exn : uint8 -> t
 end
 
@@ -66,7 +81,7 @@ module Uint8 : sig
   val of_uint64_exn : uint64 -> t
 
   (* Same-width conversions. *)
-  val of_int8_trunc : int8 -> t
+  val of_int8_wrap : int8 -> t
   val of_int8_exn : int8 -> t
 end
 
@@ -90,7 +105,7 @@ module Int16 : sig
   val of_int64_exn : int64 -> t
 
   (* Same-width conversions. *)
-  val of_uint16_trunc : uint16 -> t
+  val of_uint16_wrap : uint16 -> t
   val of_uint16_exn : uint16 -> t
 end
 
@@ -114,7 +129,7 @@ module Uint16 : sig
   val of_uint64_exn : uint64 -> t
 
   (* Same-width conversions. *)
-  val of_int16_trunc : int16 -> t
+  val of_int16_wrap : int16 -> t
   val of_int16_exn : int16 -> t
 end
 
@@ -136,7 +151,7 @@ module Int32 : sig
   val of_int64_exn : int64 -> t
 
   (* Same-width conversions. *)
-  val of_uint32_trunc : uint32 -> t
+  val of_uint32_wrap : uint32 -> t
   val of_uint32_exn : uint32 -> t
 end
 
@@ -153,6 +168,7 @@ module Uint32 : sig
   val of_base_int64_trunc : Base.Int64.t -> t
   val of_base_int64_exn : Base.Int64.t -> t
   val to_base_int64 : t -> Base.Int64.t
+  val to_base_int_exn : t -> Base.Int.t
 
   (* Same-signedness conversions. *)
   val of_uint8 : uint8 -> t
@@ -163,7 +179,7 @@ module Uint32 : sig
   val of_uint64_exn : uint64 -> t
 
   (* Same-width conversions. *)
-  val of_int32_trunc : int32 -> t
+  val of_int32_wrap : int32 -> t
   val of_int32_exn : int32 -> t
 end
 
@@ -180,7 +196,7 @@ module Int63 : sig
   val of_int64_exn : int64 -> t
 
   (* Same-width conversions. *)
-  val of_uint63_trunc : uint63 -> t
+  val of_uint63_wrap : uint63 -> t
   val of_uint63_exn : uint63 -> t
 end
 
@@ -202,7 +218,7 @@ module Uint63 : sig
   val of_uint64_exn : uint64 -> t
 
   (* Same-width conversions. *)
-  val of_int63_trunc : int63 -> t
+  val of_int63_wrap : int63 -> t
   val of_int63_exn : int63 -> t
 end
 
@@ -218,7 +234,7 @@ module Int64 : sig
   val of_int63 : int63 -> t
 
   (* Same-width conversions. *)
-  val of_uint64_trunc : uint64 -> t
+  val of_uint64_wrap : uint64 -> t
   val of_uint64_exn : uint64 -> t
 end
 
@@ -240,7 +256,7 @@ module Uint64 : sig
   val of_uint63 : uint63 -> t
 
   (* Same-width conversions. *)
-  val of_int64_trunc : int64 -> t
+  val of_int64_wrap : int64 -> t
   val of_int64_exn : int64 -> t
 end
 
