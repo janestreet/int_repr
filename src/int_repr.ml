@@ -509,6 +509,7 @@ module type Backend32_S = sig
     val of_base_int64_trunc : Base.Int64.t -> t
     val of_base_int64_exn : Base.Int64.t -> t
     val to_base_int64 : t -> Base.Int64.t
+    val of_base_int_exn : Base.Int.t -> t
     val to_base_int_exn : t -> Base.Int.t
 
     (* Same-signedness conversions. *)
@@ -678,6 +679,7 @@ end = struct
       let of_base_int64_trunc x = trunc64 x [@@inline always]
       let of_base_int64_exn x = exn64 x [@@inline always]
       let to_base_int64 x = Base.Int.to_int64 x [@@inline always]
+      let of_base_int_exn x = exn x [@@inline always]
       let to_base_int_exn x = x [@@inline always]
 
       (* Same-signedness conversions. *)
@@ -831,6 +833,12 @@ end = struct
       ;;
 
       let to_base_int64 x = Base.Int64.( land ) (Base.Int32.to_int64 x) 0xFFFFFFFFL
+      [@@inline always]
+      ;;
+
+      let of_base_int_exn x =
+        Base.Int32.of_int_exn x
+        |> identity_if_positive ~greater_equal ~zero ~mod_name ~to_string
       [@@inline always]
       ;;
 

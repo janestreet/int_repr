@@ -168,6 +168,7 @@ module Uint32 : sig
   val of_base_int64_trunc : Base.Int64.t -> t
   val of_base_int64_exn : Base.Int64.t -> t
   val to_base_int64 : t -> Base.Int64.t
+  val of_base_int_exn : Base.Int.t -> t
   val to_base_int_exn : t -> Base.Int.t
 
   (* Same-signedness conversions. *)
