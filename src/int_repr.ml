@@ -875,7 +875,7 @@ end = struct
         match sexp with
         | Base.Sexp.List _ -> of_sexp_error "Int_repr.Uint32.t_of_sexp: atom needed" sexp
         | Base.Sexp.Atom s ->
-          (try Caml.Scanf.sscanf s "%lu" Fun.id with
+          (try Stdlib.Scanf.sscanf s "%lu" Fun.id with
            | _ -> of_sexp_error "Int_repr.Uint32.t_of_sexp: integer atom needed" sexp)
       ;;
 
@@ -1044,7 +1044,7 @@ module Uint63 = struct
     match sexp with
     | Base.Sexp.List _ -> of_sexp_error "Int_repr.Uint63.t_of_sexp: atom needed" sexp
     | Base.Sexp.Atom s ->
-      (try Caml.Scanf.sscanf s "%Lu" of_base_int64_exn with
+      (try Stdlib.Scanf.sscanf s "%Lu" of_base_int64_exn with
        | _ -> of_sexp_error "Int_repr.Uint63.t_of_sexp: integer atom needed" sexp)
   ;;
 
@@ -1181,7 +1181,7 @@ module Uint64 = struct
     match sexp with
     | Base.Sexp.List _ -> of_sexp_error "Int_repr.Uint64.t_of_sexp: atom needed" sexp
     | Base.Sexp.Atom s ->
-      (try Caml.Scanf.sscanf s "%Lu" Fun.id with
+      (try Stdlib.Scanf.sscanf s "%Lu" Fun.id with
        | _ -> of_sexp_error "Int_repr.Uint64.t_of_sexp: integer atom needed" sexp)
   ;;
 
@@ -1314,8 +1314,8 @@ module type Set_functions = sig
 end
 
 external swap16 : int -> int = "%bswap16"
-external swap32 : Caml.Int32.t -> Caml.Int32.t = "%bswap_int32"
-external swap64 : Caml.Int64.t -> Caml.Int64.t = "%bswap_int64"
+external swap32 : Stdlib.Int32.t -> Stdlib.Int32.t = "%bswap_int32"
+external swap64 : Stdlib.Int64.t -> Stdlib.Int64.t = "%bswap_int64"
 
 module Make_get (F : Get_functions) : Get with type t := F.t = struct
   (* 8-bit signed values *)
@@ -1469,12 +1469,12 @@ module Bytes0Unsafe = struct
 
   external get_uint8 : Bytes.t -> int -> int = "%bytes_unsafe_get"
   external get_uint16_ne : Bytes.t -> int -> int = "%caml_bytes_get16u"
-  external get_int32_ne : Bytes.t -> int -> Caml.Int32.t = "%caml_bytes_get32u"
-  external get_int64_ne : Bytes.t -> int -> Caml.Int64.t = "%caml_bytes_get64u"
+  external get_int32_ne : Bytes.t -> int -> Stdlib.Int32.t = "%caml_bytes_get32u"
+  external get_int64_ne : Bytes.t -> int -> Stdlib.Int64.t = "%caml_bytes_get64u"
   external set_uint8 : Bytes.t -> int -> int -> unit = "%bytes_unsafe_set"
   external set_uint16_ne : Bytes.t -> int -> int -> unit = "%caml_bytes_set16u"
-  external set_int32_ne : Bytes.t -> int -> Caml.Int32.t -> unit = "%caml_bytes_set32u"
-  external set_int64_ne : Bytes.t -> int -> Caml.Int64.t -> unit = "%caml_bytes_set64u"
+  external set_int32_ne : Bytes.t -> int -> Stdlib.Int32.t -> unit = "%caml_bytes_set32u"
+  external set_int64_ne : Bytes.t -> int -> Stdlib.Int64.t -> unit = "%caml_bytes_set64u"
 end
 
 module Bytes = struct
@@ -1492,8 +1492,8 @@ module String0 = struct
 
   external get_uint8 : String.t -> int -> int = "%string_safe_get"
   external get_uint16_ne : String.t -> int -> int = "%caml_string_get16"
-  external get_int32_ne : String.t -> int -> Caml.Int32.t = "%caml_string_get32"
-  external get_int64_ne : String.t -> int -> Caml.Int64.t = "%caml_string_get64"
+  external get_int32_ne : String.t -> int -> Stdlib.Int32.t = "%caml_string_get32"
+  external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64"
 end
 
 module String0Unsafe = struct
@@ -1501,8 +1501,8 @@ module String0Unsafe = struct
 
   external get_uint8 : String.t -> int -> int = "%string_unsafe_get"
   external get_uint16_ne : String.t -> int -> int = "%caml_string_get16u"
-  external get_int32_ne : String.t -> int -> Caml.Int32.t = "%caml_string_get32u"
-  external get_int64_ne : String.t -> int -> Caml.Int64.t = "%caml_string_get64u"
+  external get_int32_ne : String.t -> int -> Stdlib.Int32.t = "%caml_string_get32u"
+  external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64u"
 end
 
 module String = struct
