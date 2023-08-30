@@ -21,17 +21,16 @@ module type T = sig
       val ( / ) : t -> t -> t
     end
   end
-
 end
 
 let raise_cannot_repr ~mod_name ~to_string x =
   Base.raise_s [%message (mod_name ^ ": value cannot be represented") ~_:(to_string x)]
-[@@cold]
+  [@@cold]
 ;;
 
 let trunc_unsigned : type a b. conv:(a -> b) -> logand:(a -> a -> a) -> mask:a -> a -> b =
   fun ~conv ~logand ~mask x -> conv (logand x mask)
-[@@inline always]
+  [@@inline always]
 ;;
 
 let exn_unsigned
@@ -48,7 +47,7 @@ let exn_unsigned
   fun ~conv ~logand ~mask ~equal ~mod_name ~to_string x ->
   let y = trunc_unsigned ~conv:Fun.id ~logand ~mask x in
   if equal x y then conv y else raise_cannot_repr ~mod_name ~to_string x
-[@@inline always]
+  [@@inline always]
 ;;
 
 let trunc_signed
@@ -56,7 +55,7 @@ let trunc_signed
     shift_left:(a -> int -> a) -> shift_right:(a -> int -> a) -> shift:int -> a -> a
   =
   fun ~shift_left ~shift_right ~shift x -> shift_right (shift_left x shift) shift
-[@@inline always]
+  [@@inline always]
 ;;
 
 let exn_signed
@@ -77,7 +76,7 @@ let exn_signed
 
 let identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x =
   if greater_equal x zero then x else raise_cannot_repr ~mod_name ~to_string x
-[@@inline always]
+  [@@inline always]
 ;;
 
 let of_sexp_error what sexp =
@@ -117,11 +116,11 @@ module Int8 = struct
   type t = Base.Int.t [@@immediate] [@@deriving compare, equal, globalize, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
-      type nonrec t = t
+    type nonrec t = t
 
-      let compare = compare
-      let sexp_of_t = sexp_of_t
-    end)
+    let compare = compare
+    let sexp_of_t = sexp_of_t
+  end)
 
   let typerep_of_t = Typerep_lib.Std.typerep_of_int
   let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -141,7 +140,7 @@ module Int8 = struct
   let trunc x = trunc_signed ~shift_left ~shift_right ~shift x [@@inline always]
 
   let exn x = exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   (* "Base" conversions. *)
@@ -154,7 +153,7 @@ module Int8 = struct
   let of_int16_exn x = exn x [@@inline always]
 
   let of_int32_trunc x = trunc (Base.Int32.to_int_trunc (Repr32.to_int32 x))
-  [@@inline always]
+    [@@inline always]
   ;;
 
   let of_int32_exn x = exn (Base.Int32.to_int_exn (Repr32.to_int32 x)) [@@inline always]
@@ -200,11 +199,11 @@ module Uint8 = struct
   type t = Base.Int.t [@@immediate] [@@deriving compare, equal, globalize, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
-      type nonrec t = t
+    type nonrec t = t
 
-      let compare = compare
-      let sexp_of_t = sexp_of_t
-    end)
+    let compare = compare
+    let sexp_of_t = sexp_of_t
+  end)
 
   let typerep_of_t = Typerep_lib.Std.typerep_of_int
   let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -229,7 +228,7 @@ module Uint8 = struct
   let trunc x = trunc_unsigned ~conv:Fun.id ~logand ~mask x [@@inline always]
 
   let exn x = exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   let trunc64 x = trunc_unsigned ~conv ~logand:logand64 ~mask:mask64 x [@@inline always]
@@ -243,7 +242,7 @@ module Uint8 = struct
       ~mod_name
       ~to_string:to_string64
       x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   (* "Base" conversions. *)
@@ -298,11 +297,11 @@ module Int16 = struct
   type t = Base.Int.t [@@immediate] [@@deriving compare, equal, globalize, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
-      type nonrec t = t
+    type nonrec t = t
 
-      let compare = compare
-      let sexp_of_t = sexp_of_t
-    end)
+    let compare = compare
+    let sexp_of_t = sexp_of_t
+  end)
 
   let typerep_of_t = Typerep_lib.Std.typerep_of_int
   let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -322,7 +321,7 @@ module Int16 = struct
   let trunc x = trunc_signed ~shift_left ~shift_right ~shift x [@@inline always]
 
   let exn x = exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   (* "Base" conversions. *)
@@ -334,7 +333,7 @@ module Int16 = struct
   let of_int8 x = x [@@inline always]
 
   let of_int32_trunc x = trunc (Base.Int32.to_int_trunc (Repr32.to_int32 x))
-  [@@inline always]
+    [@@inline always]
   ;;
 
   let of_int32_exn x = exn (Base.Int32.to_int_exn (Repr32.to_int32 x)) [@@inline always]
@@ -380,11 +379,11 @@ module Uint16 = struct
   type t = Base.Int.t [@@immediate] [@@deriving compare, equal, globalize, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
-      type nonrec t = t
+    type nonrec t = t
 
-      let compare = compare
-      let sexp_of_t = sexp_of_t
-    end)
+    let compare = compare
+    let sexp_of_t = sexp_of_t
+  end)
 
   let typerep_of_t = Typerep_lib.Std.typerep_of_int
   let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -409,7 +408,7 @@ module Uint16 = struct
   let trunc x = trunc_unsigned ~conv:Fun.id ~logand ~mask x [@@inline always]
 
   let exn x = exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   let trunc64 x = trunc_unsigned ~conv ~logand:logand64 ~mask:mask64 x [@@inline always]
@@ -423,7 +422,7 @@ module Uint16 = struct
       ~mod_name
       ~to_string:to_string64
       x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   (* "Base" conversions. *)
@@ -534,11 +533,11 @@ end = struct
       type t = Base.Int.t [@@immediate] [@@deriving compare, equal, hash, sexp]
 
       include Base.Comparable.Make [@inlined] (struct
-          type nonrec t = t
+        type nonrec t = t
 
-          let compare = compare
-          let sexp_of_t = sexp_of_t
-        end)
+        let compare = compare
+        let sexp_of_t = sexp_of_t
+      end)
 
       let typerep_of_t = Typerep_lib.Std.typerep_of_int
       let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -558,7 +557,7 @@ end = struct
       let trunc x = trunc_signed ~shift_left ~shift_right ~shift x [@@inline always]
 
       let exn x = exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       (* "Base" conversions. *)
@@ -612,11 +611,11 @@ end = struct
       type t = Base.Int.t [@@immediate] [@@deriving compare, equal, hash, sexp]
 
       include Base.Comparable.Make [@inlined] (struct
-          type nonrec t = t
+        type nonrec t = t
 
-          let compare = compare
-          let sexp_of_t = sexp_of_t
-        end)
+        let compare = compare
+        let sexp_of_t = sexp_of_t
+      end)
 
       let typerep_of_t = Typerep_lib.Std.typerep_of_int
       let typename_of_t = Typerep_lib.Std.typename_of_int
@@ -641,11 +640,11 @@ end = struct
       let trunc x = trunc_unsigned ~conv:Fun.id ~logand ~mask x [@@inline always]
 
       let exn x = exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let trunc64 x = trunc_unsigned ~conv ~logand:logand64 ~mask:mask64 x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let exn64 x =
@@ -657,13 +656,13 @@ end = struct
           ~mod_name
           ~to_string:to_string64
           x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       (* "Base" conversions. *)
       let of_base_int32_trunc x =
         Base.Int64.to_int_trunc (logand64 (Base.Int64.of_int32 x) mask64)
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let of_base_int32_exn x = exn (Base.Int32.to_int_trunc x) [@@inline always]
@@ -673,7 +672,7 @@ end = struct
         if Base.Int.( <= ) x (Base.Int.of_int64_trunc 2147483647L)
         then Base.Int32.of_int_trunc x
         else raise_cannot_repr ~mod_name ~to_string:Base.Int.to_string x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let of_base_int64_trunc x = trunc64 x [@@inline always]
@@ -731,11 +730,11 @@ end = struct
       type t = Base.Int32.t [@@deriving compare, equal, hash, sexp]
 
       include Base.Comparable.Make [@inlined] (struct
-          type nonrec t = t
+        type nonrec t = t
 
-          let compare = compare
-          let sexp_of_t = sexp_of_t
-        end)
+        let compare = compare
+        let sexp_of_t = sexp_of_t
+      end)
 
       let quickcheck_generator = Base_quickcheck.quickcheck_generator_int32
       let quickcheck_observer = Base_quickcheck.quickcheck_observer_int32
@@ -769,7 +768,7 @@ end = struct
 
       let of_uint32_exn x : t =
         identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       module O = struct
@@ -813,14 +812,14 @@ end = struct
 
       let of_base_int32_exn x =
         identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let to_base_int32_trunc x = x [@@inline always]
 
       let to_base_int32_exn x =
         identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let of_base_int64_trunc x = Base.Int32.of_int64_trunc x [@@inline always]
@@ -829,23 +828,23 @@ end = struct
         if Base.Int64.( >= ) x 0L && Base.Int64.( <= ) x 4294967295L
         then Base.Int64.to_int32_trunc x
         else raise_cannot_repr ~mod_name ~to_string:Base.Int64.to_string x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let to_base_int64 x = Base.Int64.( land ) (Base.Int32.to_int64 x) 0xFFFFFFFFL
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let of_base_int_exn x =
         Base.Int32.of_int_exn x
         |> identity_if_positive ~greater_equal ~zero ~mod_name ~to_string
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let to_base_int_exn x =
         identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
         |> Base.Int32.to_int_exn
-      [@@inline always]
+        [@@inline always]
       ;;
 
       (* Same-signedness conversions. *)
@@ -853,7 +852,7 @@ end = struct
       let of_uint16 x = Base.Int32.of_int_trunc (x : Uint16.t :> int) [@@inline always]
 
       let of_uint63_trunc x = of_base_int64_trunc (Base.Int63.to_int64 x)
-      [@@inline always]
+        [@@inline always]
       ;;
 
       let of_uint63_exn x = of_base_int64_exn (Base.Int63.to_int64 x) [@@inline always]
@@ -865,7 +864,7 @@ end = struct
 
       let of_int32_exn x =
         identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
-      [@@inline always]
+        [@@inline always]
       ;;
 
       (* Sexp conversions. *)
@@ -896,11 +895,11 @@ end = struct
       end
 
       include Base.Comparable.Make [@inlined] (struct
-          type nonrec t = t
+        type nonrec t = t
 
-          let compare = compare
-          let sexp_of_t = sexp_of_t
-        end)
+        let compare = compare
+        let sexp_of_t = sexp_of_t
+      end)
     end
   end
 
@@ -925,11 +924,11 @@ module Int63 = struct
   type t = Base.Int63.t [@@immediate64] [@@deriving compare, equal, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
-      type nonrec t = t
+    type nonrec t = t
 
-      let compare = compare
-      let sexp_of_t = sexp_of_t
-    end)
+    let compare = compare
+    let sexp_of_t = sexp_of_t
+  end)
 
   let quickcheck_generator = Base_quickcheck.Generator.int63_uniform
   let quickcheck_observer = Base_quickcheck.Observer.int63
@@ -957,7 +956,7 @@ module Int63 = struct
   let of_uint63_wrap x = x [@@inline always]
 
   let of_uint63_exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   module O = struct
@@ -1003,7 +1002,7 @@ module Uint63 = struct
 
   (* Utilities *)
   let exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   (* "Base" conversions. *)
@@ -1013,11 +1012,11 @@ module Uint63 = struct
     if Base.Int64.( >= ) x 0L
     then Base.Int63.of_int64_trunc x
     else raise_cannot_repr ~mod_name ~to_string:Base.Int64.to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   let to_base_int64 x = Base.Int64.( land ) (Base.Int63.to_int64 x) 0x7FFFFFFFFFFFFFFFL
-  [@@inline always]
+    [@@inline always]
   ;;
 
   (* Same-signedness conversions. *)
@@ -1030,7 +1029,7 @@ module Uint63 = struct
     if Base.Int64.( >= ) x 0L
     then Base.Int63.of_int64_trunc x
     else raise_cannot_repr ~mod_name ~to_string:Base.Int64.to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   (* Same-width conversions. *)
@@ -1068,22 +1067,22 @@ module Uint63 = struct
   end
 
   include Base.Comparable.Make [@inlined] (struct
-      type nonrec t = t
+    type nonrec t = t
 
-      let compare = compare
-      let sexp_of_t = sexp_of_t
-    end)
+    let compare = compare
+    let sexp_of_t = sexp_of_t
+  end)
 end
 
 module Int64 = struct
   type t = Base.Int64.t [@@deriving compare, equal, globalize, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
-      type nonrec t = t
+    type nonrec t = t
 
-      let compare = compare
-      let sexp_of_t = sexp_of_t
-    end)
+    let compare = compare
+    let sexp_of_t = sexp_of_t
+  end)
 
   let quickcheck_generator = Base_quickcheck.quickcheck_generator_int64
   let quickcheck_observer = Base_quickcheck.quickcheck_observer_int64
@@ -1110,7 +1109,7 @@ module Int64 = struct
   let of_uint64_wrap x = x [@@inline always]
 
   let of_uint64_exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   module O = struct
@@ -1151,7 +1150,7 @@ module Uint64 = struct
 
   (* Utilities *)
   let exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
-  [@@inline always]
+    [@@inline always]
   ;;
 
   (* "Base" conversions. *)
@@ -1167,7 +1166,7 @@ module Uint64 = struct
 
   let of_uint63 (x : uint63) : int64 =
     Base.Int64.( land ) (Base.Int63.to_int64 x) 0x7FFFFFFFFFFFFFFFL
-  [@@inline always]
+    [@@inline always]
   ;;
 
   (* Same-width conversions. *)
@@ -1202,11 +1201,11 @@ module Uint64 = struct
   end
 
   include Base.Comparable.Make [@inlined] (struct
-      type nonrec t = t
+    type nonrec t = t
 
-      let compare = compare
-      let sexp_of_t = sexp_of_t
-    end)
+    let compare = compare
+    let sexp_of_t = sexp_of_t
+  end)
 end
 
 module type Get = sig

@@ -21,7 +21,6 @@ module type T = sig
       val ( / ) : t -> t -> t
     end
   end
-
 end
 
 type int8 = private Base.Int.t
