@@ -1248,6 +1248,18 @@ module type Get = sig
 
   val get_uint64_le : t -> pos:int -> uint64
   val get_uint64_be : t -> pos:int -> uint64
+
+  module Local : sig
+    (* 64-bit signed values *)
+
+    val get_int64_le : t -> pos:int -> (int64[@local])
+    val get_int64_be : t -> pos:int -> (int64[@local])
+
+    (* 64-bit unsigned values *)
+
+    val get_uint64_le : t -> pos:int -> (uint64[@local])
+    val get_uint64_be : t -> pos:int -> (uint64[@local])
+  end
 end
 
 module type Set = sig
@@ -1283,13 +1295,13 @@ module type Set = sig
 
   (* 64-bit signed values *)
 
-  val set_int64_le : t -> pos:int -> int64 -> unit
-  val set_int64_be : t -> pos:int -> int64 -> unit
+  val set_int64_le : t -> pos:int -> (int64[@local]) -> unit
+  val set_int64_be : t -> pos:int -> (int64[@local]) -> unit
 
   (* 64-bit unsigned values *)
 
-  val set_uint64_le : t -> pos:int -> uint64 -> unit
-  val set_uint64_be : t -> pos:int -> uint64 -> unit
+  val set_uint64_le : t -> pos:int -> (uint64[@local]) -> unit
+  val set_uint64_be : t -> pos:int -> (uint64[@local]) -> unit
 end
 
 module type Get_functions = sig
@@ -1300,6 +1312,10 @@ module type Get_functions = sig
   val get_uint16_ne : t -> int -> Base.Int.t
   val get_int32_ne : t -> int -> Base.Int32.t
   val get_int64_ne : t -> int -> Base.Int64.t
+
+  module Local : sig
+    val get_int64_ne : t -> int -> (Base.Int64.t[@local])
+  end
 end
 
 module type Set_functions = sig
@@ -1309,12 +1325,19 @@ module type Set_functions = sig
   val set_uint8 : t -> int -> Base.Int.t -> unit
   val set_uint16_ne : t -> int -> Base.Int.t -> unit
   val set_int32_ne : t -> int -> Base.Int32.t -> unit
-  val set_int64_ne : t -> int -> Base.Int64.t -> unit
+  val set_int64_ne : t -> int -> (Base.Int64.t[@local]) -> unit
 end
 
 external swap16 : int -> int = "%bswap16"
 external swap32 : Stdlib.Int32.t -> Stdlib.Int32.t = "%bswap_int32"
-external swap64 : Stdlib.Int64.t -> Stdlib.Int64.t = "%bswap_int64"
+
+external swap64
+  :  (Stdlib.Int64.t[@local_opt])
+  -> (Stdlib.Int64.t[@local_opt])
+  = "%bswap_int64"
+
+external int64_to_uint64 : (int64[@local_opt]) -> (Uint64.t[@local_opt]) = "%identity"
+external uint64_to_int64 : (Uint64.t[@local_opt]) -> (int64[@local_opt]) = "%identity"
 
 module Make_get (F : Get_functions) : Get with type t := F.t = struct
   (* 8-bit signed values *)
@@ -1396,6 +1419,32 @@ module Make_get (F : Get_functions) : Get with type t := F.t = struct
     let x = F.get_int64_ne t pos in
     Uint64.of_base_int64_trunc (if Sys.big_endian then x else swap64 x)
   ;;
+
+  module Local = struct
+    (* 64-bit signed values *)
+
+    let get_int64_le t ~pos =
+      let x = F.Local.get_int64_ne t pos in
+       (if Sys.big_endian then swap64 x else x)
+    ;;
+
+    let get_int64_be t ~pos =
+      let x = F.Local.get_int64_ne t pos in
+       (if Sys.big_endian then x else swap64 x)
+    ;;
+
+    (* 64-bit unsigned values *)
+
+    let get_uint64_le t ~pos =
+      let x = F.Local.get_int64_ne t pos in
+       (int64_to_uint64 (if Sys.big_endian then swap64 x else x))
+    ;;
+
+    let get_uint64_be t ~pos =
+      let x = F.Local.get_int64_ne t pos in
+       (int64_to_uint64 (if Sys.big_endian then x else swap64 x))
+    ;;
+  end
 end
 [@@inline always]
 
@@ -1448,18 +1497,18 @@ module Make_set (F : Set_functions) : Set with type t := F.t = struct
 
   let set_int64_le t ~pos x =
     let x = if Sys.big_endian then swap64 x else x in
-    F.set_int64_ne t pos x
+    F.set_int64_ne t pos x [@nontail]
   ;;
 
   let set_int64_be t ~pos x =
     let x = if Sys.big_endian then x else swap64 x in
-    F.set_int64_ne t pos x
+    F.set_int64_ne t pos x [@nontail]
   ;;
 
   (* 64-bit unsigned values *)
 
-  let set_uint64_le t ~pos x = set_int64_le t ~pos (Int64.of_uint64_wrap x)
-  let set_uint64_be t ~pos x = set_int64_be t ~pos (Int64.of_uint64_wrap x)
+  let set_uint64_le t ~pos x = set_int64_le t ~pos (uint64_to_int64 x) [@nontail]
+  let set_uint64_be t ~pos x = set_int64_be t ~pos (uint64_to_int64 x) [@nontail]
 end
 [@@inline always]
 
@@ -1473,10 +1522,43 @@ module Bytes0Unsafe = struct
   external set_uint8 : Bytes.t -> int -> int -> unit = "%bytes_unsafe_set"
   external set_uint16_ne : Bytes.t -> int -> int -> unit = "%caml_bytes_set16u"
   external set_int32_ne : Bytes.t -> int -> Stdlib.Int32.t -> unit = "%caml_bytes_set32u"
-  external set_int64_ne : Bytes.t -> int -> Stdlib.Int64.t -> unit = "%caml_bytes_set64u"
+
+  external set_int64_ne
+    :  Bytes.t
+    -> int
+    -> (Stdlib.Int64.t[@local_opt])
+    -> unit
+    = "%caml_bytes_set64u"
+
+  module Local = struct
+    external get_int64_ne
+      :  Bytes.t
+      -> int
+      -> (Stdlib.Int64.t[@local])
+      = "%caml_bytes_get64u"
+  end
 end
 
 module Bytes = struct
+  module Bytes = struct
+    include Bytes
+
+    external set_int64_ne
+      :  Bytes.t
+      -> int
+      -> (Stdlib.Int64.t[@local_opt])
+      -> unit
+      = "%caml_bytes_set64"
+
+    module Local = struct
+      external get_int64_ne
+        :  Bytes.t
+        -> int
+        -> (Stdlib.Int64.t[@local])
+        = "%caml_bytes_get64"
+    end
+  end
+
   include Make_get (Bytes)
   include Make_set (Bytes)
 
@@ -1493,6 +1575,14 @@ module String0 = struct
   external get_uint16_ne : String.t -> int -> int = "%caml_string_get16"
   external get_int32_ne : String.t -> int -> Stdlib.Int32.t = "%caml_string_get32"
   external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64"
+
+  module Local = struct
+    external get_int64_ne
+      :  String.t
+      -> int
+      -> (Stdlib.Int64.t[@local])
+      = "%caml_string_get64"
+  end
 end
 
 module String0Unsafe = struct
@@ -1502,6 +1592,14 @@ module String0Unsafe = struct
   external get_uint16_ne : String.t -> int -> int = "%caml_string_get16u"
   external get_int32_ne : String.t -> int -> Stdlib.Int32.t = "%caml_string_get32u"
   external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64u"
+
+  module Local = struct
+    external get_int64_ne
+      :  String.t
+      -> int
+      -> (Stdlib.Int64.t[@local])
+      = "%caml_string_get64u"
+  end
 end
 
 module String = struct
