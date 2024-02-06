@@ -304,13 +304,13 @@ module type Get = sig
   module Local : sig
     (** {2 64-bit signed values} *)
 
-    val get_int64_le : t -> pos:int -> (int64[@local])
-    val get_int64_be : t -> pos:int -> (int64[@local])
+    val get_int64_le : t -> pos:int -> int64
+    val get_int64_be : t -> pos:int -> int64
 
     (** {2 64-bit unsigned values} *)
 
-    val get_uint64_le : t -> pos:int -> (uint64[@local])
-    val get_uint64_be : t -> pos:int -> (uint64[@local])
+    val get_uint64_le : t -> pos:int -> uint64
+    val get_uint64_be : t -> pos:int -> uint64
   end
 end
 
@@ -347,13 +347,13 @@ module type Set = sig
 
   (** {2 64-bit signed values} *)
 
-  val set_int64_le : t -> pos:int -> (int64[@local]) -> unit
-  val set_int64_be : t -> pos:int -> (int64[@local]) -> unit
+  val set_int64_le : t -> pos:int -> int64 -> unit
+  val set_int64_be : t -> pos:int -> int64 -> unit
 
   (** {2 64-bit unsigned values} *)
 
-  val set_uint64_le : t -> pos:int -> (uint64[@local]) -> unit
-  val set_uint64_be : t -> pos:int -> (uint64[@local]) -> unit
+  val set_uint64_le : t -> pos:int -> uint64 -> unit
+  val set_uint64_be : t -> pos:int -> uint64 -> unit
 end
 
 module type Get_functions = sig
@@ -366,7 +366,7 @@ module type Get_functions = sig
   val get_int64_ne : t -> int -> Base.Int64.t
 
   module Local : sig
-    val get_int64_ne : t -> int -> (Base.Int64.t[@local])
+    val get_int64_ne : t -> int -> Base.Int64.t
   end
 end
 
@@ -377,7 +377,7 @@ module type Set_functions = sig
   val set_uint8 : t -> int -> Base.Int.t -> unit
   val set_uint16_ne : t -> int -> Base.Int.t -> unit
   val set_int32_ne : t -> int -> Base.Int32.t -> unit
-  val set_int64_ne : t -> int -> (Base.Int64.t[@local]) -> unit
+  val set_int64_ne : t -> int -> Base.Int64.t -> unit
 end
 
 module Make_get (F : Get_functions) : Get with type t := F.t

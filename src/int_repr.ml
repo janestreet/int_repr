@@ -1252,13 +1252,13 @@ module type Get = sig
   module Local : sig
     (* 64-bit signed values *)
 
-    val get_int64_le : t -> pos:int -> (int64[@local])
-    val get_int64_be : t -> pos:int -> (int64[@local])
+    val get_int64_le : t -> pos:int -> int64
+    val get_int64_be : t -> pos:int -> int64
 
     (* 64-bit unsigned values *)
 
-    val get_uint64_le : t -> pos:int -> (uint64[@local])
-    val get_uint64_be : t -> pos:int -> (uint64[@local])
+    val get_uint64_le : t -> pos:int -> uint64
+    val get_uint64_be : t -> pos:int -> uint64
   end
 end
 
@@ -1295,13 +1295,13 @@ module type Set = sig
 
   (* 64-bit signed values *)
 
-  val set_int64_le : t -> pos:int -> (int64[@local]) -> unit
-  val set_int64_be : t -> pos:int -> (int64[@local]) -> unit
+  val set_int64_le : t -> pos:int -> int64 -> unit
+  val set_int64_be : t -> pos:int -> int64 -> unit
 
   (* 64-bit unsigned values *)
 
-  val set_uint64_le : t -> pos:int -> (uint64[@local]) -> unit
-  val set_uint64_be : t -> pos:int -> (uint64[@local]) -> unit
+  val set_uint64_le : t -> pos:int -> uint64 -> unit
+  val set_uint64_be : t -> pos:int -> uint64 -> unit
 end
 
 module type Get_functions = sig
@@ -1314,7 +1314,7 @@ module type Get_functions = sig
   val get_int64_ne : t -> int -> Base.Int64.t
 
   module Local : sig
-    val get_int64_ne : t -> int -> (Base.Int64.t[@local])
+    val get_int64_ne : t -> int -> Base.Int64.t
   end
 end
 
@@ -1325,7 +1325,7 @@ module type Set_functions = sig
   val set_uint8 : t -> int -> Base.Int.t -> unit
   val set_uint16_ne : t -> int -> Base.Int.t -> unit
   val set_int32_ne : t -> int -> Base.Int32.t -> unit
-  val set_int64_ne : t -> int -> (Base.Int64.t[@local]) -> unit
+  val set_int64_ne : t -> int -> Base.Int64.t -> unit
 end
 
 external swap16 : int -> int = "%bswap16"
@@ -1425,24 +1425,24 @@ module Make_get (F : Get_functions) : Get with type t := F.t = struct
 
     let get_int64_le t ~pos =
       let x = F.Local.get_int64_ne t pos in
-       (if Sys.big_endian then swap64 x else x)
+      if Sys.big_endian then swap64 x else x
     ;;
 
     let get_int64_be t ~pos =
       let x = F.Local.get_int64_ne t pos in
-       (if Sys.big_endian then x else swap64 x)
+      if Sys.big_endian then x else swap64 x
     ;;
 
     (* 64-bit unsigned values *)
 
     let get_uint64_le t ~pos =
       let x = F.Local.get_int64_ne t pos in
-       (int64_to_uint64 (if Sys.big_endian then swap64 x else x))
+      int64_to_uint64 (if Sys.big_endian then swap64 x else x)
     ;;
 
     let get_uint64_be t ~pos =
       let x = F.Local.get_int64_ne t pos in
-       (int64_to_uint64 (if Sys.big_endian then x else swap64 x))
+      int64_to_uint64 (if Sys.big_endian then x else swap64 x)
     ;;
   end
 end
@@ -1531,11 +1531,7 @@ module Bytes0Unsafe = struct
     = "%caml_bytes_set64u"
 
   module Local = struct
-    external get_int64_ne
-      :  Bytes.t
-      -> int
-      -> (Stdlib.Int64.t[@local])
-      = "%caml_bytes_get64u"
+    external get_int64_ne : Bytes.t -> int -> Stdlib.Int64.t = "%caml_bytes_get64u"
   end
 end
 
@@ -1551,11 +1547,7 @@ module Bytes = struct
       = "%caml_bytes_set64"
 
     module Local = struct
-      external get_int64_ne
-        :  Bytes.t
-        -> int
-        -> (Stdlib.Int64.t[@local])
-        = "%caml_bytes_get64"
+      external get_int64_ne : Bytes.t -> int -> Stdlib.Int64.t = "%caml_bytes_get64"
     end
   end
 
@@ -1577,11 +1569,7 @@ module String0 = struct
   external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64"
 
   module Local = struct
-    external get_int64_ne
-      :  String.t
-      -> int
-      -> (Stdlib.Int64.t[@local])
-      = "%caml_string_get64"
+    external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64"
   end
 end
 
@@ -1594,11 +1582,7 @@ module String0Unsafe = struct
   external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64u"
 
   module Local = struct
-    external get_int64_ne
-      :  String.t
-      -> int
-      -> (Stdlib.Int64.t[@local])
-      = "%caml_string_get64u"
+    external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64u"
   end
 end
 
