@@ -35,7 +35,7 @@ type int64 = Base.Int64.t
 type uint64 = private Base.Int64.t
 
 module Int8 : sig
-  type t = int8 [@@immediate] [@@deriving globalize]
+  type t = int8 [@@deriving globalize] [@@immediate]
 
   include T with type t := t
 
@@ -60,7 +60,7 @@ module Int8 : sig
 end
 
 module Uint8 : sig
-  type t = uint8 [@@immediate] [@@deriving globalize]
+  type t = uint8 [@@deriving globalize] [@@immediate]
 
   include T with type t := t
 
@@ -85,7 +85,7 @@ module Uint8 : sig
 end
 
 module Int16 : sig
-  type t = int16 [@@immediate] [@@deriving globalize]
+  type t = int16 [@@deriving globalize] [@@immediate]
 
   include T with type t := t
 
@@ -109,7 +109,7 @@ module Int16 : sig
 end
 
 module Uint16 : sig
-  type t = uint16 [@@immediate] [@@deriving globalize]
+  type t = uint16 [@@deriving globalize] [@@immediate]
 
   include T with type t := t
 
