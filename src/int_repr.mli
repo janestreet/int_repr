@@ -27,15 +27,15 @@ type int8 = private Base.Int.t
 type uint8 = private Base.Int.t
 type int16 = private Base.Int.t
 type uint16 = private Base.Int.t
-type int32 [@@immediate64]
-type uint32 [@@immediate64]
+type int32 : immediate64
+type uint32 : immediate64
 type int63 = Base.Int63.t
 type uint63 = private Base.Int63.t
 type int64 = Base.Int64.t
 type uint64 = private Base.Int64.t
 
 module Int8 : sig
-  type t = int8 [@@deriving globalize] [@@immediate]
+  type t : immediate = int8 [@@deriving globalize]
 
   include T with type t := t
 
@@ -60,7 +60,7 @@ module Int8 : sig
 end
 
 module Uint8 : sig
-  type t = uint8 [@@deriving globalize] [@@immediate]
+  type t : immediate = uint8 [@@deriving globalize]
 
   include T with type t := t
 
@@ -85,7 +85,7 @@ module Uint8 : sig
 end
 
 module Int16 : sig
-  type t = int16 [@@deriving globalize] [@@immediate]
+  type t : immediate = int16 [@@deriving globalize]
 
   include T with type t := t
 
@@ -109,7 +109,7 @@ module Int16 : sig
 end
 
 module Uint16 : sig
-  type t = uint16 [@@deriving globalize] [@@immediate]
+  type t : immediate = uint16 [@@deriving globalize]
 
   include T with type t := t
 
@@ -184,7 +184,7 @@ module Uint32 : sig
 end
 
 module Int63 : sig
-  type t = int63 [@@immediate64]
+  type t : immediate64 = int63
 
   include T with type t := t
 
@@ -265,52 +265,52 @@ module type Get = sig
 
   (** {2 8-bit signed values} *)
 
-  val get_int8 : t -> pos:int -> int8
+  val get_int8 : local_ t -> pos:int -> int8
 
   (** {2 8-bit unsigned values} *)
 
-  val get_uint8 : t -> pos:int -> uint8
+  val get_uint8 : local_ t -> pos:int -> uint8
 
   (** {2 16-bit signed values} *)
 
-  val get_int16_le : t -> pos:int -> int16
-  val get_int16_be : t -> pos:int -> int16
+  val get_int16_le : local_ t -> pos:int -> int16
+  val get_int16_be : local_ t -> pos:int -> int16
 
   (** {2 16-bit unsigned values} *)
 
-  val get_uint16_le : t -> pos:int -> uint16
-  val get_uint16_be : t -> pos:int -> uint16
+  val get_uint16_le : local_ t -> pos:int -> uint16
+  val get_uint16_be : local_ t -> pos:int -> uint16
 
   (** {2 32-bit signed values} *)
 
-  val get_int32_le : t -> pos:int -> int32
-  val get_int32_be : t -> pos:int -> int32
+  val get_int32_le : local_ t -> pos:int -> int32
+  val get_int32_be : local_ t -> pos:int -> int32
 
   (** {2 32-bit unsigned values} *)
 
-  val get_uint32_le : t -> pos:int -> uint32
-  val get_uint32_be : t -> pos:int -> uint32
+  val get_uint32_le : local_ t -> pos:int -> uint32
+  val get_uint32_be : local_ t -> pos:int -> uint32
 
   (** {2 64-bit signed values} *)
 
-  val get_int64_le : t -> pos:int -> int64
-  val get_int64_be : t -> pos:int -> int64
+  val get_int64_le : local_ t -> pos:int -> int64
+  val get_int64_be : local_ t -> pos:int -> int64
 
   (** {2 64-bit unsigned values} *)
 
-  val get_uint64_le : t -> pos:int -> uint64
-  val get_uint64_be : t -> pos:int -> uint64
+  val get_uint64_le : local_ t -> pos:int -> uint64
+  val get_uint64_be : local_ t -> pos:int -> uint64
 
   module Local : sig
     (** {2 64-bit signed values} *)
 
-    val get_int64_le : t -> pos:int -> int64
-    val get_int64_be : t -> pos:int -> int64
+    val get_int64_le : local_ t -> pos:int -> local_ int64
+    val get_int64_be : local_ t -> pos:int -> local_ int64
 
     (** {2 64-bit unsigned values} *)
 
-    val get_uint64_le : t -> pos:int -> uint64
-    val get_uint64_be : t -> pos:int -> uint64
+    val get_uint64_le : local_ t -> pos:int -> local_ uint64
+    val get_uint64_be : local_ t -> pos:int -> local_ uint64
   end
 end
 
@@ -319,54 +319,54 @@ module type Set = sig
 
   (** {2 8-bit signed values} *)
 
-  val set_int8 : t -> pos:int -> int8 -> unit
+  val set_int8 : local_ t -> pos:int -> int8 -> unit
 
   (** {2 8-bit unsigned values} *)
 
-  val set_uint8 : t -> pos:int -> uint8 -> unit
+  val set_uint8 : local_ t -> pos:int -> uint8 -> unit
 
   (** {2 16-bit signed values} *)
 
-  val set_int16_le : t -> pos:int -> int16 -> unit
-  val set_int16_be : t -> pos:int -> int16 -> unit
+  val set_int16_le : local_ t -> pos:int -> int16 -> unit
+  val set_int16_be : local_ t -> pos:int -> int16 -> unit
 
   (** {2 16-bit unsigned values} *)
 
-  val set_uint16_le : t -> pos:int -> uint16 -> unit
-  val set_uint16_be : t -> pos:int -> uint16 -> unit
+  val set_uint16_le : local_ t -> pos:int -> uint16 -> unit
+  val set_uint16_be : local_ t -> pos:int -> uint16 -> unit
 
   (** {2 32-bit signed values} *)
 
-  val set_int32_le : t -> pos:int -> int32 -> unit
-  val set_int32_be : t -> pos:int -> int32 -> unit
+  val set_int32_le : local_ t -> pos:int -> local_ int32 -> unit
+  val set_int32_be : local_ t -> pos:int -> local_ int32 -> unit
 
   (** {2 32-bit unsigned values} *)
 
-  val set_uint32_le : t -> pos:int -> uint32 -> unit
-  val set_uint32_be : t -> pos:int -> uint32 -> unit
+  val set_uint32_le : local_ t -> pos:int -> local_ uint32 -> unit
+  val set_uint32_be : local_ t -> pos:int -> local_ uint32 -> unit
 
   (** {2 64-bit signed values} *)
 
-  val set_int64_le : t -> pos:int -> int64 -> unit
-  val set_int64_be : t -> pos:int -> int64 -> unit
+  val set_int64_le : local_ t -> pos:int -> local_ int64 -> unit
+  val set_int64_be : local_ t -> pos:int -> local_ int64 -> unit
 
   (** {2 64-bit unsigned values} *)
 
-  val set_uint64_le : t -> pos:int -> uint64 -> unit
-  val set_uint64_be : t -> pos:int -> uint64 -> unit
+  val set_uint64_le : local_ t -> pos:int -> local_ uint64 -> unit
+  val set_uint64_be : local_ t -> pos:int -> local_ uint64 -> unit
 end
 
 module type Get_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
-  val get_uint8 : t -> int -> Base.Int.t
-  val get_uint16_ne : t -> int -> Base.Int.t
-  val get_int32_ne : t -> int -> Base.Int32.t
-  val get_int64_ne : t -> int -> Base.Int64.t
+  val get_uint8 : local_ t -> int -> Base.Int.t
+  val get_uint16_ne : local_ t -> int -> Base.Int.t
+  val get_int32_ne : local_ t -> int -> Base.Int32.t
+  val get_int64_ne : local_ t -> int -> Base.Int64.t
 
   module Local : sig
-    val get_int64_ne : t -> int -> Base.Int64.t
+    val get_int64_ne : local_ t -> int -> local_ Base.Int64.t
   end
 end
 
@@ -374,10 +374,10 @@ module type Set_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
-  val set_uint8 : t -> int -> Base.Int.t -> unit
-  val set_uint16_ne : t -> int -> Base.Int.t -> unit
-  val set_int32_ne : t -> int -> Base.Int32.t -> unit
-  val set_int64_ne : t -> int -> Base.Int64.t -> unit
+  val set_uint8 : local_ t -> int -> Base.Int.t -> unit
+  val set_uint16_ne : local_ t -> int -> Base.Int.t -> unit
+  val set_int32_ne : local_ t -> int -> local_ Base.Int32.t -> unit
+  val set_int64_ne : local_ t -> int -> local_ Base.Int64.t -> unit
 end
 
 module Make_get (F : Get_functions) : Get with type t := F.t

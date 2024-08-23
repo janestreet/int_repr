@@ -113,7 +113,7 @@ type int64 = Base.Int64.t
 type uint64 = Base.Int64.t
 
 module Int8 = struct
-  type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
+  type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
       type nonrec t = t
@@ -196,7 +196,7 @@ module Int8 = struct
 end
 
 module Uint8 = struct
-  type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
+  type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
       type nonrec t = t
@@ -294,7 +294,7 @@ module Uint8 = struct
 end
 
 module Int16 = struct
-  type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
+  type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
       type nonrec t = t
@@ -376,7 +376,7 @@ module Int16 = struct
 end
 
 module Uint16 = struct
-  type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
+  type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
       type nonrec t = t
@@ -530,7 +530,7 @@ module Backend32 : sig
 end = struct
   module I = struct
     module Signed = struct
-      type t = Base.Int.t [@@deriving compare, equal, hash, sexp] [@@immediate]
+      type t : immediate = Base.Int.t [@@deriving compare, equal, hash, sexp]
 
       include Base.Comparable.Make [@inlined] (struct
           type nonrec t = t
@@ -608,7 +608,7 @@ end = struct
     end
 
     module Unsigned = struct
-      type t = Base.Int.t [@@deriving compare, equal, hash, sexp] [@@immediate]
+      type t : immediate = Base.Int.t [@@deriving compare, equal, hash, sexp]
 
       include Base.Comparable.Make [@inlined] (struct
           type nonrec t = t
@@ -921,7 +921,7 @@ module Uint32 = struct
 end
 
 module Int63 = struct
-  type t = Base.Int63.t [@@deriving compare, equal, hash, sexp] [@@immediate64]
+  type t : immediate64 = Base.Int63.t [@@deriving compare, equal, hash, sexp]
 
   include Base.Comparable.Make [@inlined] (struct
       type nonrec t = t
@@ -1213,52 +1213,52 @@ module type Get = sig
 
   (* 8-bit signed values *)
 
-  val get_int8 : t -> pos:int -> int8
+  val get_int8 : local_ t -> pos:int -> int8
 
   (* 8-bit unsigned values *)
 
-  val get_uint8 : t -> pos:int -> uint8
+  val get_uint8 : local_ t -> pos:int -> uint8
 
   (* 16-bit signed values *)
 
-  val get_int16_le : t -> pos:int -> int16
-  val get_int16_be : t -> pos:int -> int16
+  val get_int16_le : local_ t -> pos:int -> int16
+  val get_int16_be : local_ t -> pos:int -> int16
 
   (* 16-bit unsigned values *)
 
-  val get_uint16_le : t -> pos:int -> uint16
-  val get_uint16_be : t -> pos:int -> uint16
+  val get_uint16_le : local_ t -> pos:int -> uint16
+  val get_uint16_be : local_ t -> pos:int -> uint16
 
   (* 32-bit signed values *)
 
-  val get_int32_le : t -> pos:int -> int32
-  val get_int32_be : t -> pos:int -> int32
+  val get_int32_le : local_ t -> pos:int -> int32
+  val get_int32_be : local_ t -> pos:int -> int32
 
   (* 32-bit unsigned values *)
 
-  val get_uint32_le : t -> pos:int -> uint32
-  val get_uint32_be : t -> pos:int -> uint32
+  val get_uint32_le : local_ t -> pos:int -> uint32
+  val get_uint32_be : local_ t -> pos:int -> uint32
 
   (* 64-bit signed values *)
 
-  val get_int64_le : t -> pos:int -> int64
-  val get_int64_be : t -> pos:int -> int64
+  val get_int64_le : local_ t -> pos:int -> int64
+  val get_int64_be : local_ t -> pos:int -> int64
 
   (* 64-bit unsigned values *)
 
-  val get_uint64_le : t -> pos:int -> uint64
-  val get_uint64_be : t -> pos:int -> uint64
+  val get_uint64_le : local_ t -> pos:int -> uint64
+  val get_uint64_be : local_ t -> pos:int -> uint64
 
   module Local : sig
     (* 64-bit signed values *)
 
-    val get_int64_le : t -> pos:int -> int64
-    val get_int64_be : t -> pos:int -> int64
+    val get_int64_le : local_ t -> pos:int -> local_ int64
+    val get_int64_be : local_ t -> pos:int -> local_ int64
 
     (* 64-bit unsigned values *)
 
-    val get_uint64_le : t -> pos:int -> uint64
-    val get_uint64_be : t -> pos:int -> uint64
+    val get_uint64_le : local_ t -> pos:int -> local_ uint64
+    val get_uint64_be : local_ t -> pos:int -> local_ uint64
   end
 end
 
@@ -1267,54 +1267,54 @@ module type Set = sig
 
   (* 8-bit signed values *)
 
-  val set_int8 : t -> pos:int -> int8 -> unit
+  val set_int8 : local_ t -> pos:int -> int8 -> unit
 
   (* 8-bit unsigned values *)
 
-  val set_uint8 : t -> pos:int -> uint8 -> unit
+  val set_uint8 : local_ t -> pos:int -> uint8 -> unit
 
   (* 16-bit signed values *)
 
-  val set_int16_le : t -> pos:int -> int16 -> unit
-  val set_int16_be : t -> pos:int -> int16 -> unit
+  val set_int16_le : local_ t -> pos:int -> int16 -> unit
+  val set_int16_be : local_ t -> pos:int -> int16 -> unit
 
   (* 16-bit unsigned values *)
 
-  val set_uint16_le : t -> pos:int -> uint16 -> unit
-  val set_uint16_be : t -> pos:int -> uint16 -> unit
+  val set_uint16_le : local_ t -> pos:int -> uint16 -> unit
+  val set_uint16_be : local_ t -> pos:int -> uint16 -> unit
 
   (* 32-bit signed values *)
 
-  val set_int32_le : t -> pos:int -> int32 -> unit
-  val set_int32_be : t -> pos:int -> int32 -> unit
+  val set_int32_le : local_ t -> pos:int -> local_ int32 -> unit
+  val set_int32_be : local_ t -> pos:int -> local_ int32 -> unit
 
   (* 32-bit unsigned values *)
 
-  val set_uint32_le : t -> pos:int -> uint32 -> unit
-  val set_uint32_be : t -> pos:int -> uint32 -> unit
+  val set_uint32_le : local_ t -> pos:int -> local_ uint32 -> unit
+  val set_uint32_be : local_ t -> pos:int -> local_ uint32 -> unit
 
   (* 64-bit signed values *)
 
-  val set_int64_le : t -> pos:int -> int64 -> unit
-  val set_int64_be : t -> pos:int -> int64 -> unit
+  val set_int64_le : local_ t -> pos:int -> local_ int64 -> unit
+  val set_int64_be : local_ t -> pos:int -> local_ int64 -> unit
 
   (* 64-bit unsigned values *)
 
-  val set_uint64_le : t -> pos:int -> uint64 -> unit
-  val set_uint64_be : t -> pos:int -> uint64 -> unit
+  val set_uint64_le : local_ t -> pos:int -> local_ uint64 -> unit
+  val set_uint64_be : local_ t -> pos:int -> local_ uint64 -> unit
 end
 
 module type Get_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
-  val get_uint8 : t -> int -> Base.Int.t
-  val get_uint16_ne : t -> int -> Base.Int.t
-  val get_int32_ne : t -> int -> Base.Int32.t
-  val get_int64_ne : t -> int -> Base.Int64.t
+  val get_uint8 : local_ t -> int -> Base.Int.t
+  val get_uint16_ne : local_ t -> int -> Base.Int.t
+  val get_int32_ne : local_ t -> int -> Base.Int32.t
+  val get_int64_ne : local_ t -> int -> Base.Int64.t
 
   module Local : sig
-    val get_int64_ne : t -> int -> Base.Int64.t
+    val get_int64_ne : local_ t -> int -> local_ Base.Int64.t
   end
 end
 
@@ -1322,10 +1322,10 @@ module type Set_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
-  val set_uint8 : t -> int -> Base.Int.t -> unit
-  val set_uint16_ne : t -> int -> Base.Int.t -> unit
-  val set_int32_ne : t -> int -> Base.Int32.t -> unit
-  val set_int64_ne : t -> int -> Base.Int64.t -> unit
+  val set_uint8 : local_ t -> int -> Base.Int.t -> unit
+  val set_uint16_ne : local_ t -> int -> Base.Int.t -> unit
+  val set_int32_ne : local_ t -> int -> local_ Base.Int32.t -> unit
+  val set_int64_ne : local_ t -> int -> local_ Base.Int64.t -> unit
 end
 
 external swap16 : int -> int = "%bswap16"
@@ -1423,24 +1423,24 @@ module Make_get (F : Get_functions) : Get with type t := F.t = struct
   module Local = struct
     (* 64-bit signed values *)
 
-    let get_int64_le t ~pos =
+    let get_int64_le t ~pos = exclave_
       let x = F.Local.get_int64_ne t pos in
       if Sys.big_endian then swap64 x else x
     ;;
 
-    let get_int64_be t ~pos =
+    let get_int64_be t ~pos = exclave_
       let x = F.Local.get_int64_ne t pos in
       if Sys.big_endian then x else swap64 x
     ;;
 
     (* 64-bit unsigned values *)
 
-    let get_uint64_le t ~pos =
+    let get_uint64_le t ~pos = exclave_
       let x = F.Local.get_int64_ne t pos in
       int64_to_uint64 (if Sys.big_endian then swap64 x else x)
     ;;
 
-    let get_uint64_be t ~pos =
+    let get_uint64_be t ~pos = exclave_
       let x = F.Local.get_int64_ne t pos in
       int64_to_uint64 (if Sys.big_endian then x else swap64 x)
     ;;
@@ -1515,17 +1515,33 @@ end
 module Bytes0Unsafe = struct
   type t = Bytes.t
 
-  external get_uint8 : Bytes.t -> int -> int = "%bytes_unsafe_get"
-  external get_uint16_ne : Bytes.t -> int -> int = "%caml_bytes_get16u"
-  external get_int32_ne : Bytes.t -> int -> Stdlib.Int32.t = "%caml_bytes_get32u"
-  external get_int64_ne : Bytes.t -> int -> Stdlib.Int64.t = "%caml_bytes_get64u"
-  external set_uint8 : Bytes.t -> int -> int -> unit = "%bytes_unsafe_set"
-  external set_uint16_ne : Bytes.t -> int -> int -> unit = "%caml_bytes_set16u"
-  external set_int32_ne : Bytes.t -> int -> Stdlib.Int32.t -> unit = "%caml_bytes_set32u"
-  external set_int64_ne : Bytes.t -> int -> Stdlib.Int64.t -> unit = "%caml_bytes_set64u"
+  external get_uint8 : local_ Bytes.t -> int -> int = "%bytes_unsafe_get"
+  external get_uint16_ne : local_ Bytes.t -> int -> int = "%caml_bytes_get16u"
+  external get_int32_ne : local_ Bytes.t -> int -> Stdlib.Int32.t = "%caml_bytes_get32u"
+  external get_int64_ne : local_ Bytes.t -> int -> Stdlib.Int64.t = "%caml_bytes_get64u"
+  external set_uint8 : local_ Bytes.t -> int -> int -> unit = "%bytes_unsafe_set"
+  external set_uint16_ne : local_ Bytes.t -> int -> int -> unit = "%caml_bytes_set16u"
+
+  external set_int32_ne
+    :  local_ Bytes.t
+    -> int
+    -> local_ Stdlib.Int32.t
+    -> unit
+    = "%caml_bytes_set32u"
+
+  external set_int64_ne
+    :  local_ Bytes.t
+    -> int
+    -> local_ Stdlib.Int64.t
+    -> unit
+    = "%caml_bytes_set64u"
 
   module Local = struct
-    external get_int64_ne : Bytes.t -> int -> Stdlib.Int64.t = "%caml_bytes_get64u"
+    external get_int64_ne
+      :  local_ Bytes.t
+      -> int
+      -> local_ Stdlib.Int64.t
+      = "%caml_bytes_get64u"
   end
 end
 
@@ -1533,20 +1549,37 @@ module Bytes = struct
   module Bytes = struct
     type t = bytes
 
-    external set_int8 : bytes -> int -> int -> unit = "%bytes_safe_set"
-    external set_int16_ne : bytes -> int -> int -> unit = "%caml_bytes_set16"
-    external set_int32_ne : bytes -> int -> Stdlib.Int32.t -> unit = "%caml_bytes_set32"
-    external get_uint8 : bytes -> int -> int = "%bytes_safe_get"
-    external get_uint16_ne : bytes -> int -> int = "%caml_bytes_get16"
-    external get_int32_ne : bytes -> int -> Stdlib.Int32.t = "%caml_bytes_get32"
-    external get_int64_ne : bytes -> int -> Stdlib.Int64.t = "%caml_bytes_get64"
-    external set_int64_ne : bytes -> int -> Stdlib.Int64.t -> unit = "%caml_bytes_set64"
+    external set_int8 : local_ bytes -> int -> int -> unit = "%bytes_safe_set"
+    external set_int16_ne : local_ bytes -> int -> int -> unit = "%caml_bytes_set16"
+
+    external set_int32_ne
+      :  local_ bytes
+      -> int
+      -> local_ Stdlib.Int32.t
+      -> unit
+      = "%caml_bytes_set32"
+
+    external get_uint8 : local_ bytes -> int -> int = "%bytes_safe_get"
+    external get_uint16_ne : local_ bytes -> int -> int = "%caml_bytes_get16"
+    external get_int32_ne : local_ bytes -> int -> Stdlib.Int32.t = "%caml_bytes_get32"
+    external get_int64_ne : local_ bytes -> int -> Stdlib.Int64.t = "%caml_bytes_get64"
+
+    external set_int64_ne
+      :  local_ bytes
+      -> int
+      -> local_ Stdlib.Int64.t
+      -> unit
+      = "%caml_bytes_set64"
 
     let set_uint8 = set_int8
     let set_uint16_ne = set_int16_ne
 
     module Local = struct
-      external get_int64_ne : bytes -> int -> Stdlib.Int64.t = "%caml_bytes_get64"
+      external get_int64_ne
+        :  local_ bytes
+        -> int
+        -> local_ Stdlib.Int64.t
+        = "%caml_bytes_get64"
     end
   end
 
@@ -1562,26 +1595,34 @@ end
 module String0 = struct
   include String
 
-  external get_uint8 : String.t -> int -> int = "%string_safe_get"
-  external get_uint16_ne : String.t -> int -> int = "%caml_string_get16"
-  external get_int32_ne : String.t -> int -> Stdlib.Int32.t = "%caml_string_get32"
-  external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64"
+  external get_uint8 : local_ String.t -> int -> int = "%string_safe_get"
+  external get_uint16_ne : local_ String.t -> int -> int = "%caml_string_get16"
+  external get_int32_ne : local_ String.t -> int -> Stdlib.Int32.t = "%caml_string_get32"
+  external get_int64_ne : local_ String.t -> int -> Stdlib.Int64.t = "%caml_string_get64"
 
   module Local = struct
-    external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64"
+    external get_int64_ne
+      :  local_ String.t
+      -> int
+      -> local_ Stdlib.Int64.t
+      = "%caml_string_get64"
   end
 end
 
 module String0Unsafe = struct
   type t = String.t
 
-  external get_uint8 : String.t -> int -> int = "%string_unsafe_get"
-  external get_uint16_ne : String.t -> int -> int = "%caml_string_get16u"
-  external get_int32_ne : String.t -> int -> Stdlib.Int32.t = "%caml_string_get32u"
-  external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64u"
+  external get_uint8 : local_ String.t -> int -> int = "%string_unsafe_get"
+  external get_uint16_ne : local_ String.t -> int -> int = "%caml_string_get16u"
+  external get_int32_ne : local_ String.t -> int -> Stdlib.Int32.t = "%caml_string_get32u"
+  external get_int64_ne : local_ String.t -> int -> Stdlib.Int64.t = "%caml_string_get64u"
 
   module Local = struct
-    external get_int64_ne : String.t -> int -> Stdlib.Int64.t = "%caml_string_get64u"
+    external get_int64_ne
+      :  local_ String.t
+      -> int
+      -> local_ Stdlib.Int64.t
+      = "%caml_string_get64u"
   end
 end
 
