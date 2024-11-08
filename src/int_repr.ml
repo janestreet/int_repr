@@ -1,5 +1,5 @@
 module type T = sig
-  type t [@@deriving compare, equal, hash, quickcheck, sexp, typerep]
+  type t [@@deriving compare, equal, globalize, hash, quickcheck, sexp, typerep]
 
   val signed : bool
   val num_bits : int
@@ -474,7 +474,7 @@ end
 
 module type Backend32_S = sig
   module Signed : sig
-    type t = Repr32.t
+    type t = Repr32.t [@@deriving globalize]
 
     include T with type t := t
 
@@ -530,7 +530,7 @@ module Backend32 : sig
 end = struct
   module I = struct
     module Signed = struct
-      type t : immediate = Base.Int.t [@@deriving compare, equal, hash, sexp]
+      type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
 
       include Base.Comparable.Make [@inlined] (struct
           type nonrec t = t
@@ -608,7 +608,7 @@ end = struct
     end
 
     module Unsigned = struct
-      type t : immediate = Base.Int.t [@@deriving compare, equal, hash, sexp]
+      type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
 
       include Base.Comparable.Make [@inlined] (struct
           type nonrec t = t
@@ -727,7 +727,7 @@ end = struct
 
   module N = struct
     module Signed = struct
-      type t = Base.Int32.t [@@deriving compare, equal, hash, sexp]
+      type t = Base.Int32.t [@@deriving compare, equal, globalize, hash, sexp]
 
       include Base.Comparable.Make [@inlined] (struct
           type nonrec t = t
@@ -789,7 +789,7 @@ end = struct
     end
 
     module Unsigned = struct
-      type t = Base.Int32.t [@@deriving equal, hash]
+      type t = Base.Int32.t [@@deriving equal, globalize, hash]
 
       let quickcheck_generator = Base_quickcheck.quickcheck_generator_int32
       let quickcheck_observer = Base_quickcheck.quickcheck_observer_int32
@@ -923,6 +923,12 @@ end
 module Int63 = struct
   type t : immediate64 = Base.Int63.t [@@deriving compare, equal, hash, sexp]
 
+  let globalize : local_ t -> t =
+    match Base.Int63.Private.repr with
+    | Int -> [%globalize: Base.Int.t]
+    | Int64 -> [%globalize: Base.Int64.t]
+  ;;
+
   include Base.Comparable.Make [@inlined] (struct
       type nonrec t = t
 
@@ -977,7 +983,7 @@ module Int63 = struct
 end
 
 module Uint63 = struct
-  type t = Base.Int63.t [@@deriving equal, hash]
+  type t = Int63.t [@@deriving equal, globalize, hash]
 
   let quickcheck_generator = Base_quickcheck.Generator.int63_uniform
   let quickcheck_observer = Base_quickcheck.Observer.int63

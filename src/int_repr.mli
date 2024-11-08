@@ -1,5 +1,5 @@
 module type T = sig
-  type t [@@deriving compare, equal, hash, quickcheck, sexp, typerep]
+  type t [@@deriving compare, equal, globalize, hash, quickcheck, sexp, typerep]
 
   val signed : bool
   val num_bits : int
@@ -35,7 +35,7 @@ type int64 = Base.Int64.t
 type uint64 = private Base.Int64.t
 
 module Int8 : sig
-  type t : immediate = int8 [@@deriving globalize]
+  type t : immediate = int8
 
   include T with type t := t
 
@@ -60,7 +60,7 @@ module Int8 : sig
 end
 
 module Uint8 : sig
-  type t : immediate = uint8 [@@deriving globalize]
+  type t : immediate = uint8
 
   include T with type t := t
 
@@ -85,7 +85,7 @@ module Uint8 : sig
 end
 
 module Int16 : sig
-  type t : immediate = int16 [@@deriving globalize]
+  type t : immediate = int16
 
   include T with type t := t
 
@@ -109,7 +109,7 @@ module Int16 : sig
 end
 
 module Uint16 : sig
-  type t : immediate = uint16 [@@deriving globalize]
+  type t : immediate = uint16
 
   include T with type t := t
 
@@ -133,7 +133,7 @@ module Uint16 : sig
 end
 
 module Int32 : sig
-  type t = int32
+  type t : immediate64 = int32
 
   include T with type t := t
 
@@ -155,7 +155,7 @@ module Int32 : sig
 end
 
 module Uint32 : sig
-  type t = uint32
+  type t : immediate64 = uint32
 
   include T with type t := t
 
@@ -223,7 +223,7 @@ module Uint63 : sig
 end
 
 module Int64 : sig
-  type t = int64 [@@deriving globalize]
+  type t = int64
 
   include T with type t := t
 
@@ -239,7 +239,7 @@ module Int64 : sig
 end
 
 module Uint64 : sig
-  type t = uint64 [@@deriving globalize]
+  type t = uint64
 
   include T with type t := t
 
