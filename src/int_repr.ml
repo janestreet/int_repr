@@ -74,9 +74,9 @@ let exn_signed
   if equal x y then y else raise_cannot_repr ~mod_name ~to_string x
 ;;
 
-let identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x =
+let%template identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x =
   if greater_equal x zero then x else raise_cannot_repr ~mod_name ~to_string x
-[@@inline always]
+[@@mode m = (global, local)] [@@inline always]
 ;;
 
 let of_sexp_error what sexp =
@@ -115,15 +115,23 @@ type uint64 = Base.Int64.t
 module Int8 = struct
   type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
 
-  include Base.Comparable.Make [@inlined] (struct
+  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
       type nonrec t = t
 
       let compare = compare
       let sexp_of_t = sexp_of_t
     end)
 
-  let typerep_of_t = Typerep_lib.Std.typerep_of_int
-  let typename_of_t = Typerep_lib.Std.typename_of_int
+  let typerep_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typerep_of_int
+  ;;
+
+  let typename_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typename_of_int
+  ;;
+
   let zero = Base.Int.zero
   let min_value = -128
   let max_value = 127
@@ -139,7 +147,8 @@ module Int8 = struct
   (* Utilities *)
   let trunc x = trunc_signed ~shift_left ~shift_right ~shift x [@@inline always]
 
-  let exn x = exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
+  let exn x =
+    exn_signed ~shift_left ~shift_right ~shift ~equal:[%eta2 equal] ~mod_name ~to_string x
   [@@inline always]
   ;;
 
@@ -169,13 +178,16 @@ module Int8 = struct
   (* Miscellaneous *)
   let quickcheck_generator = Base_quickcheck.Generator.int_inclusive min_value max_value
 
-  let quickcheck_observer =
-    Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+  let%template quickcheck_observer =
+    (Base_quickcheck.Observer.unmap [@mode portable])
+      Base_quickcheck.Observer.int
+      ~f:trunc
   ;;
 
-  let quickcheck_shrinker =
-    Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
-      equal x (trunc x))
+  let%template quickcheck_shrinker =
+    (Base_quickcheck.Shrinker.filter [@mode portable])
+      Base_quickcheck.Shrinker.int
+      ~f:(fun x -> equal x (trunc x))
   ;;
 
   module O = struct
@@ -198,15 +210,23 @@ end
 module Uint8 = struct
   type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
 
-  include Base.Comparable.Make [@inlined] (struct
+  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
       type nonrec t = t
 
       let compare = compare
       let sexp_of_t = sexp_of_t
     end)
 
-  let typerep_of_t = Typerep_lib.Std.typerep_of_int
-  let typename_of_t = Typerep_lib.Std.typename_of_int
+  let typerep_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typerep_of_int
+  ;;
+
+  let typename_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typename_of_int
+  ;;
+
   let zero = Base.Int.zero
   let min_value = Base.Int.zero
   let max_value = 255
@@ -227,7 +247,8 @@ module Uint8 = struct
   (* Utilities *)
   let trunc x = trunc_unsigned ~conv:Fun.id ~logand ~mask x [@@inline always]
 
-  let exn x = exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
+  let exn x =
+    exn_unsigned ~conv:Fun.id ~logand ~mask ~equal:[%eta2 equal] ~mod_name ~to_string x
   [@@inline always]
   ;;
 
@@ -267,13 +288,16 @@ module Uint8 = struct
   (* Miscellaneous *)
   let quickcheck_generator = Base_quickcheck.Generator.int_inclusive min_value max_value
 
-  let quickcheck_observer =
-    Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+  let%template quickcheck_observer =
+    (Base_quickcheck.Observer.unmap [@mode portable])
+      Base_quickcheck.Observer.int
+      ~f:trunc
   ;;
 
-  let quickcheck_shrinker =
-    Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
-      equal x (trunc x))
+  let%template quickcheck_shrinker =
+    (Base_quickcheck.Shrinker.filter [@mode portable])
+      Base_quickcheck.Shrinker.int
+      ~f:(fun x -> equal x (trunc x))
   ;;
 
   module O = struct
@@ -296,15 +320,23 @@ end
 module Int16 = struct
   type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
 
-  include Base.Comparable.Make [@inlined] (struct
+  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
       type nonrec t = t
 
       let compare = compare
       let sexp_of_t = sexp_of_t
     end)
 
-  let typerep_of_t = Typerep_lib.Std.typerep_of_int
-  let typename_of_t = Typerep_lib.Std.typename_of_int
+  let typerep_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typerep_of_int
+  ;;
+
+  let typename_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typename_of_int
+  ;;
+
   let zero = Base.Int.zero
   let min_value = -32768
   let max_value = 32767
@@ -320,7 +352,8 @@ module Int16 = struct
   (* Utilities *)
   let trunc x = trunc_signed ~shift_left ~shift_right ~shift x [@@inline always]
 
-  let exn x = exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
+  let exn x =
+    exn_signed ~shift_left ~shift_right ~shift ~equal:[%eta2 equal] ~mod_name ~to_string x
   [@@inline always]
   ;;
 
@@ -349,13 +382,16 @@ module Int16 = struct
   (* Miscellaneous *)
   let quickcheck_generator = Base_quickcheck.Generator.int_inclusive min_value max_value
 
-  let quickcheck_observer =
-    Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+  let%template quickcheck_observer =
+    (Base_quickcheck.Observer.unmap [@mode portable])
+      Base_quickcheck.Observer.int
+      ~f:trunc
   ;;
 
-  let quickcheck_shrinker =
-    Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
-      equal x (trunc x))
+  let%template quickcheck_shrinker =
+    (Base_quickcheck.Shrinker.filter [@mode portable])
+      Base_quickcheck.Shrinker.int
+      ~f:(fun x -> equal x (trunc x))
   ;;
 
   module O = struct
@@ -378,15 +414,23 @@ end
 module Uint16 = struct
   type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
 
-  include Base.Comparable.Make [@inlined] (struct
+  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
       type nonrec t = t
 
       let compare = compare
       let sexp_of_t = sexp_of_t
     end)
 
-  let typerep_of_t = Typerep_lib.Std.typerep_of_int
-  let typename_of_t = Typerep_lib.Std.typename_of_int
+  let typerep_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typerep_of_int
+  ;;
+
+  let typename_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typename_of_int
+  ;;
+
   let zero = Base.Int.zero
   let min_value = Base.Int.zero
   let max_value = 65535
@@ -407,7 +451,8 @@ module Uint16 = struct
   (* Utilities *)
   let trunc x = trunc_unsigned ~conv:Fun.id ~logand ~mask x [@@inline always]
 
-  let exn x = exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
+  let exn x =
+    exn_unsigned ~conv:Fun.id ~logand ~mask ~equal:[%eta2 equal] ~mod_name ~to_string x
   [@@inline always]
   ;;
 
@@ -446,13 +491,16 @@ module Uint16 = struct
   (* Miscellaneous *)
   let quickcheck_generator = Base_quickcheck.Generator.int_inclusive min_value max_value
 
-  let quickcheck_observer =
-    Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+  let%template quickcheck_observer =
+    (Base_quickcheck.Observer.unmap [@mode portable])
+      Base_quickcheck.Observer.int
+      ~f:trunc
   ;;
 
-  let quickcheck_shrinker =
-    Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
-      equal x (trunc x))
+  let%template quickcheck_shrinker =
+    (Base_quickcheck.Shrinker.filter [@mode portable])
+      Base_quickcheck.Shrinker.int
+      ~f:(fun x -> equal x (trunc x))
   ;;
 
   module O = struct
@@ -532,15 +580,23 @@ end = struct
     module Signed = struct
       type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
 
-      include Base.Comparable.Make [@inlined] (struct
+      include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
           type nonrec t = t
 
           let compare = compare
           let sexp_of_t = sexp_of_t
         end)
 
-      let typerep_of_t = Typerep_lib.Std.typerep_of_int
-      let typename_of_t = Typerep_lib.Std.typename_of_int
+      let typerep_of_t =
+        Base.Portability_hacks.magic_portable__needs_base_and_core
+          Typerep_lib.Std.typerep_of_int
+      ;;
+
+      let typename_of_t =
+        Base.Portability_hacks.magic_portable__needs_base_and_core
+          Typerep_lib.Std.typename_of_int
+      ;;
+
       let zero = Base.Int.zero
       let min_value = Base.Int32.to_int_trunc Base.Int32.min_value
       let max_value = Base.Int32.to_int_trunc Base.Int32.max_value
@@ -556,7 +612,15 @@ end = struct
       (* Utilities *)
       let trunc x = trunc_signed ~shift_left ~shift_right ~shift x [@@inline always]
 
-      let exn x = exn_signed ~shift_left ~shift_right ~shift ~equal ~mod_name ~to_string x
+      let exn x =
+        exn_signed
+          ~shift_left
+          ~shift_right
+          ~shift
+          ~equal:[%eta2 equal]
+          ~mod_name
+          ~to_string
+          x
       [@@inline always]
       ;;
 
@@ -581,13 +645,16 @@ end = struct
         Base_quickcheck.Generator.int_inclusive min_value max_value
       ;;
 
-      let quickcheck_observer =
-        Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+      let%template quickcheck_observer =
+        (Base_quickcheck.Observer.unmap [@mode portable])
+          Base_quickcheck.Observer.int
+          ~f:trunc
       ;;
 
-      let quickcheck_shrinker =
-        Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
-          equal x (trunc x))
+      let%template quickcheck_shrinker =
+        (Base_quickcheck.Shrinker.filter [@mode portable])
+          Base_quickcheck.Shrinker.int
+          ~f:(fun x -> equal x (trunc x))
       ;;
 
       module O = struct
@@ -610,15 +677,23 @@ end = struct
     module Unsigned = struct
       type t = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp] [@@immediate]
 
-      include Base.Comparable.Make [@inlined] (struct
+      include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
           type nonrec t = t
 
           let compare = compare
           let sexp_of_t = sexp_of_t
         end)
 
-      let typerep_of_t = Typerep_lib.Std.typerep_of_int
-      let typename_of_t = Typerep_lib.Std.typename_of_int
+      let typerep_of_t =
+        Base.Portability_hacks.magic_portable__needs_base_and_core
+          Typerep_lib.Std.typerep_of_int
+      ;;
+
+      let typename_of_t =
+        Base.Portability_hacks.magic_portable__needs_base_and_core
+          Typerep_lib.Std.typename_of_int
+      ;;
+
       let zero = Base.Int.zero
       let min_value = Base.Int.zero
       let max_value = Base.Int.of_int64_trunc 4294967295L
@@ -639,7 +714,15 @@ end = struct
       (* Utilities *)
       let trunc x = trunc_unsigned ~conv:Fun.id ~logand ~mask x [@@inline always]
 
-      let exn x = exn_unsigned ~conv:Fun.id ~logand ~mask ~equal ~mod_name ~to_string x
+      let exn x =
+        exn_unsigned
+          ~conv:Fun.id
+          ~logand
+          ~mask
+          ~equal:[%eta2 equal]
+          ~mod_name
+          ~to_string
+          x
       [@@inline always]
       ;;
 
@@ -698,13 +781,16 @@ end = struct
         Base_quickcheck.Generator.int_inclusive min_value max_value
       ;;
 
-      let quickcheck_observer =
-        Base_quickcheck.Observer.unmap Base_quickcheck.Observer.int ~f:trunc
+      let%template quickcheck_observer =
+        (Base_quickcheck.Observer.unmap [@mode portable])
+          Base_quickcheck.Observer.int
+          ~f:trunc
       ;;
 
-      let quickcheck_shrinker =
-        Base_quickcheck.Shrinker.filter Base_quickcheck.Shrinker.int ~f:(fun x ->
-          equal x (trunc x))
+      let%template quickcheck_shrinker =
+        (Base_quickcheck.Shrinker.filter [@mode portable])
+          Base_quickcheck.Shrinker.int
+          ~f:(fun x -> equal x (trunc x))
       ;;
 
       module O = struct
@@ -729,7 +815,7 @@ end = struct
     module Signed = struct
       type t = Base.Int32.t [@@deriving compare, equal, globalize, hash, sexp]
 
-      include Base.Comparable.Make [@inlined] (struct
+      include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
           type nonrec t = t
 
           let compare = compare
@@ -739,8 +825,17 @@ end = struct
       let quickcheck_generator = Base_quickcheck.quickcheck_generator_int32
       let quickcheck_observer = Base_quickcheck.quickcheck_observer_int32
       let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int32
-      let typerep_of_t = Typerep_lib.Std.typerep_of_int32
-      let typename_of_t = Typerep_lib.Std.typename_of_int32
+
+      let typerep_of_t =
+        Base.Portability_hacks.magic_portable__needs_base_and_core
+          Typerep_lib.Std.typerep_of_int32
+      ;;
+
+      let typename_of_t =
+        Base.Portability_hacks.magic_portable__needs_base_and_core
+          Typerep_lib.Std.typename_of_int32
+      ;;
+
       let zero = Base.Int32.zero
       let min_value = Base.Int32.min_value
       let max_value = Base.Int32.max_value
@@ -780,10 +875,10 @@ end = struct
         let ( <> ) = Base.Int32.( <> )
 
         module Wrap = struct
-          let ( + ) = Base.Int32.( + )
-          let ( - ) = Base.Int32.( - )
-          let ( * ) = Base.Int32.( * )
-          let ( / ) = Base.Int32.( / )
+          let[@inline] ( + ) x y = Base.Int32.( + ) x y
+          let[@inline] ( - ) x y = Base.Int32.( - ) x y
+          let[@inline] ( * ) x y = Base.Int32.( * ) x y
+          let[@inline] ( / ) x y = Base.Int32.( / ) x y
         end
       end
     end
@@ -795,8 +890,17 @@ end = struct
       let quickcheck_observer = Base_quickcheck.quickcheck_observer_int32
       let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int32
       let compare x y = Stdlib.Int32.unsigned_compare x y [@@inline always]
-      let typerep_of_t = Typerep_lib.Std.typerep_of_int32
-      let typename_of_t = Typerep_lib.Std.typename_of_int32
+
+      let typerep_of_t =
+        Base.Portability_hacks.magic_portable__needs_base_and_core
+          Typerep_lib.Std.typerep_of_int32
+      ;;
+
+      let typename_of_t =
+        Base.Portability_hacks.magic_portable__needs_base_and_core
+          Typerep_lib.Std.typename_of_int32
+      ;;
+
       let zero = Base.Int32.zero
       let min_value = Base.Int32.zero
       let max_value = -1l
@@ -887,14 +991,14 @@ end = struct
         let ( <> ) x y = compare x y <> 0
 
         module Wrap = struct
-          let ( + ) = Base.Int32.( + )
-          let ( - ) = Base.Int32.( - )
-          let ( * ) = Base.Int32.( * )
+          let[@inline] ( + ) x y = Base.Int32.( + ) x y
+          let[@inline] ( - ) x y = Base.Int32.( - ) x y
+          let[@inline] ( * ) x y = Base.Int32.( * ) x y
           let ( / ) = Stdlib.Int32.unsigned_div
         end
       end
 
-      include Base.Comparable.Make [@inlined] (struct
+      include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
           type nonrec t = t
 
           let compare = compare
@@ -929,7 +1033,7 @@ module Int63 = struct
     | Int64 -> [%globalize: Base.Int64.t]
   ;;
 
-  include Base.Comparable.Make [@inlined] (struct
+  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
       type nonrec t = t
 
       let compare = compare
@@ -939,8 +1043,17 @@ module Int63 = struct
   let quickcheck_generator = Base_quickcheck.Generator.int63_uniform
   let quickcheck_observer = Base_quickcheck.Observer.int63
   let quickcheck_shrinker = Base_quickcheck.Shrinker.int63
-  let typerep_of_t = Typerep_lib.Std.typerep_of_int63
-  let typename_of_t = Typerep_lib.Std.typename_of_int63
+
+  let typerep_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typerep_of_int63
+  ;;
+
+  let typename_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typename_of_int63
+  ;;
+
   let zero = Base.Int63.zero
   let min_value = Base.Int63.min_value
   let max_value = Base.Int63.max_value
@@ -974,10 +1087,10 @@ module Int63 = struct
     let ( <> ) = Base.Int63.( <> )
 
     module Wrap = struct
-      let ( + ) = Base.Int63.( + )
-      let ( - ) = Base.Int63.( - )
-      let ( * ) = Base.Int63.( * )
-      let ( / ) = Base.Int63.( / )
+      let[@inline] ( + ) x y = Base.Int63.( + ) x y
+      let[@inline] ( - ) x y = Base.Int63.( - ) x y
+      let[@inline] ( * ) x y = Base.Int63.( * ) x y
+      let[@inline] ( / ) x y = Base.Int63.( / ) x y
     end
   end
 end
@@ -994,8 +1107,16 @@ module Uint63 = struct
     Stdlib.Int64.unsigned_compare (Base.Int63.to_int64 x) (Base.Int63.to_int64 y)
   ;;
 
-  let typerep_of_t = Typerep_lib.Std.typerep_of_int63
-  let typename_of_t = Typerep_lib.Std.typename_of_int63
+  let typerep_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typerep_of_int63
+  ;;
+
+  let typename_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typename_of_int63
+  ;;
+
   let zero = Base.Int63.zero
   let min_value = Base.Int63.zero
   let max_value = Base.Int63.of_int64_trunc 9223372036854775807L
@@ -1062,9 +1183,9 @@ module Uint63 = struct
     let ( <> ) x y = compare x y <> 0
 
     module Wrap = struct
-      let ( + ) = Base.Int63.( + )
-      let ( - ) = Base.Int63.( - )
-      let ( * ) = Base.Int63.( * )
+      let[@inline] ( + ) x y = Base.Int63.( + ) x y
+      let[@inline] ( - ) x y = Base.Int63.( - ) x y
+      let[@inline] ( * ) x y = Base.Int63.( * ) x y
 
       let ( / ) x y =
         of_base_int64_trunc (Base.Int64.( / ) (to_base_int64 x) (to_base_int64 y))
@@ -1072,7 +1193,7 @@ module Uint63 = struct
     end
   end
 
-  include Base.Comparable.Make [@inlined] (struct
+  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
       type nonrec t = t
 
       let compare = compare
@@ -1083,7 +1204,7 @@ end
 module Int64 = struct
   type t = Base.Int64.t [@@deriving compare, equal, globalize, hash, sexp]
 
-  include Base.Comparable.Make [@inlined] (struct
+  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
       type nonrec t = t
 
       let compare = compare
@@ -1093,8 +1214,17 @@ module Int64 = struct
   let quickcheck_generator = Base_quickcheck.quickcheck_generator_int64
   let quickcheck_observer = Base_quickcheck.quickcheck_observer_int64
   let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int64
-  let typerep_of_t = Typerep_lib.Std.typerep_of_int64
-  let typename_of_t = Typerep_lib.Std.typename_of_int64
+
+  let typerep_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typerep_of_int64
+  ;;
+
+  let typename_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typename_of_int64
+  ;;
+
   let zero = Base.Int64.zero
   let min_value = Base.Int64.min_value
   let max_value = Base.Int64.max_value
@@ -1127,10 +1257,10 @@ module Int64 = struct
     let ( <> ) = Base.Int64.( <> )
 
     module Wrap = struct
-      let ( + ) = Base.Int64.( + )
-      let ( - ) = Base.Int64.( - )
-      let ( * ) = Base.Int64.( * )
-      let ( / ) = Base.Int64.( / )
+      let[@inline] ( + ) x y = Base.Int64.( + ) x y
+      let[@inline] ( - ) x y = Base.Int64.( - ) x y
+      let[@inline] ( * ) x y = Base.Int64.( * ) x y
+      let[@inline] ( / ) x y = Base.Int64.( / ) x y
     end
   end
 end
@@ -1142,8 +1272,17 @@ module Uint64 = struct
   let quickcheck_observer = Base_quickcheck.quickcheck_observer_int64
   let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int64
   let compare = Stdlib.Int64.unsigned_compare
-  let typerep_of_t = Typerep_lib.Std.typerep_of_int64
-  let typename_of_t = Typerep_lib.Std.typename_of_int64
+
+  let typerep_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typerep_of_int64
+  ;;
+
+  let typename_of_t =
+    Base.Portability_hacks.magic_portable__needs_base_and_core
+      Typerep_lib.Std.typename_of_int64
+  ;;
+
   let zero = Base.Int64.zero
   let min_value = Base.Int64.zero
   let max_value = -1L
@@ -1155,15 +1294,24 @@ module Uint64 = struct
   let to_string = Base.Int64.to_string
 
   (* Utilities *)
-  let exn x = identity_if_positive ~greater_equal ~zero ~mod_name ~to_string x
-  [@@inline always]
+  let%template exn x =
+    (identity_if_positive [@mode m])
+      ~greater_equal
+      ~zero
+      ~mod_name
+      ~to_string
+      x [@exclave_if_local m]
+  [@@mode m = (global, local)] [@@inline always]
   ;;
 
   (* "Base" conversions. *)
   let of_base_int64_trunc x = x [@@inline always]
   let of_base_int64_exn x = exn x [@@inline always]
-  let to_base_int64_trunc x = x [@@inline always]
-  let to_base_int64_exn x = exn x [@@inline always]
+  let%template to_base_int64_trunc x = x [@@inline always] [@@mode m = (global, local)]
+
+  let%template to_base_int64_exn x = (exn [@mode m]) x [@exclave_if_local m]
+  [@@inline always] [@@mode m = (global, local)]
+  ;;
 
   (* Same-signedness conversions. *)
   let of_uint8 x = Base.Int64.of_int x [@@inline always]
@@ -1199,14 +1347,14 @@ module Uint64 = struct
     let ( <> ) x y = compare x y <> 0
 
     module Wrap = struct
-      let ( + ) = Base.Int64.( + )
-      let ( - ) = Base.Int64.( - )
-      let ( * ) = Base.Int64.( * )
+      let[@inline] ( + ) x y = Base.Int64.( + ) x y
+      let[@inline] ( - ) x y = Base.Int64.( - ) x y
+      let[@inline] ( * ) x y = Base.Int64.( * ) x y
       let ( / ) = Stdlib.Int64.unsigned_div
     end
   end
 
-  include Base.Comparable.Make [@inlined] (struct
+  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
       type nonrec t = t
 
       let compare = compare
@@ -1345,7 +1493,7 @@ external swap64
 external int64_to_uint64 : (int64[@local_opt]) -> (Uint64.t[@local_opt]) = "%identity"
 external uint64_to_int64 : (Uint64.t[@local_opt]) -> (int64[@local_opt]) = "%identity"
 
-module Make_get (F : Get_functions) : Get with type t := F.t = struct
+module%template.portable Make_get (F : Get_functions) : Get with type t := F.t = struct
   (* 8-bit signed values *)
 
   let get_int8 t ~pos = Int8.of_base_int_trunc (F.get_uint8 t pos)
@@ -1454,7 +1602,7 @@ module Make_get (F : Get_functions) : Get with type t := F.t = struct
 end
 [@@inline always]
 
-module Make_set (F : Set_functions) : Set with type t := F.t = struct
+module%template.portable Make_set (F : Set_functions) : Set with type t := F.t = struct
   (* 8-bit unsigned values *)
 
   let set_uint8 t ~pos x = F.set_uint8 t pos x
@@ -1535,7 +1683,7 @@ module Bytes0Unsafe = struct
   end
 end
 
-module Bytes = struct
+module%template Bytes = struct
   module Bytes = struct
     type t = bytes
 
@@ -1556,12 +1704,12 @@ module Bytes = struct
     end
   end
 
-  include Make_get (Bytes)
-  include Make_set (Bytes)
+  include Make_get [@modality portable] (Bytes)
+  include Make_set [@modality portable] (Bytes)
 
   module Unsafe = struct
-    include Make_get (Bytes0Unsafe)
-    include Make_set (Bytes0Unsafe)
+    include Make_get [@modality portable] (Bytes0Unsafe)
+    include Make_set [@modality portable] (Bytes0Unsafe)
   end
 end
 
@@ -1591,10 +1739,10 @@ module String0Unsafe = struct
   end
 end
 
-module String = struct
-  include Make_get (String0)
+module%template String = struct
+  include Make_get [@modality portable] (String0)
 
   module Unsafe = struct
-    include Make_get (String0Unsafe)
+    include Make_get [@modality portable] (String0Unsafe)
   end
 end

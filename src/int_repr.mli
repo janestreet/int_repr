@@ -246,8 +246,9 @@ module Uint64 : sig
   (* "Base" conversions. *)
   val of_base_int64_trunc : Base.Int64.t -> t
   val of_base_int64_exn : Base.Int64.t -> t
-  val to_base_int64_trunc : t -> Base.Int64.t
-  val to_base_int64_exn : t -> Base.Int64.t
+
+  val%template to_base_int64_trunc : t -> Base.Int64.t [@@mode m = (global, local)]
+  val%template to_base_int64_exn : t -> Base.Int64.t [@@mode m = (global, local)]
 
   (* Same-signedness conversions. *)
   val of_uint8 : uint8 -> t
@@ -380,8 +381,8 @@ module type Set_functions = sig
   val set_int64_ne : t -> int -> Base.Int64.t -> unit
 end
 
-module Make_get (F : Get_functions) : Get with type t := F.t
-module Make_set (F : Set_functions) : Set with type t := F.t
+module%template.portable Make_get (F : Get_functions) : Get with type t := F.t
+module%template.portable Make_set (F : Set_functions) : Set with type t := F.t
 
 module Bytes : sig
   include Get with type t := Bytes.t
