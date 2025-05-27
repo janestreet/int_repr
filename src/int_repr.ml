@@ -1,5 +1,7 @@
 module type T = sig
-  type t [@@deriving compare, equal, globalize, hash, quickcheck, sexp, typerep]
+  type t
+  [@@deriving
+    compare ~localize, equal ~localize, globalize, hash, quickcheck, sexp, typerep]
 
   val signed : bool
   val num_bits : int
@@ -9,7 +11,8 @@ module type T = sig
   val max_value : t
 
   include Ppx_hash_lib.Hashable.S with type t := t
-  include Base.Comparisons.S with type t := t
+
+  include%template Base.Comparisons.S [@mode local] with type t := t
 
   module O : sig
     include Base.Comparisons.Infix with type t := t
@@ -119,13 +122,12 @@ type int64 = Base.Int64.t
 type uint64 = Base.Int64.t
 
 module Int8 = struct
-  type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
+  type t : immediate = Base.Int.t
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
 
-  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-      type nonrec t = t
-
-      let compare = compare
-      let sexp_of_t = sexp_of_t
+  include%template
+    Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+      type nonrec t = t [@@deriving compare ~localize, sexp_of]
     end)
 
   let typerep_of_t =
@@ -214,13 +216,12 @@ module Int8 = struct
 end
 
 module Uint8 = struct
-  type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
+  type t : immediate = Base.Int.t
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
 
-  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-      type nonrec t = t
-
-      let compare = compare
-      let sexp_of_t = sexp_of_t
+  include%template
+    Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+      type nonrec t = t [@@deriving compare ~localize, sexp_of]
     end)
 
   let typerep_of_t =
@@ -324,13 +325,12 @@ module Uint8 = struct
 end
 
 module Int16 = struct
-  type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
+  type t : immediate = Base.Int.t
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
 
-  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-      type nonrec t = t
-
-      let compare = compare
-      let sexp_of_t = sexp_of_t
+  include%template
+    Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+      type nonrec t = t [@@deriving compare ~localize, sexp_of]
     end)
 
   let typerep_of_t =
@@ -418,13 +418,12 @@ module Int16 = struct
 end
 
 module Uint16 = struct
-  type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
+  type t : immediate = Base.Int.t
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
 
-  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-      type nonrec t = t
-
-      let compare = compare
-      let sexp_of_t = sexp_of_t
+  include%template
+    Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+      type nonrec t = t [@@deriving compare ~localize, sexp_of]
     end)
 
   let typerep_of_t =
@@ -584,13 +583,12 @@ module Backend32 : sig
 end = struct
   module I = struct
     module Signed = struct
-      type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
+      type t : immediate = Base.Int.t
+      [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
 
-      include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-          type nonrec t = t
-
-          let compare = compare
-          let sexp_of_t = sexp_of_t
+      include%template
+        Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+          type nonrec t = t [@@deriving compare ~localize, sexp_of]
         end)
 
       let typerep_of_t =
@@ -681,13 +679,12 @@ end = struct
     end
 
     module Unsigned = struct
-      type t : immediate = Base.Int.t [@@deriving compare, equal, globalize, hash, sexp]
+      type t : immediate = Base.Int.t
+      [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
 
-      include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-          type nonrec t = t
-
-          let compare = compare
-          let sexp_of_t = sexp_of_t
+      include%template
+        Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+          type nonrec t = t [@@deriving compare ~localize, sexp_of]
         end)
 
       let typerep_of_t =
@@ -819,13 +816,12 @@ end = struct
 
   module N = struct
     module Signed = struct
-      type t = Base.Int32.t [@@deriving compare, equal, globalize, hash, sexp]
+      type t = Base.Int32.t
+      [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
 
-      include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-          type nonrec t = t
-
-          let compare = compare
-          let sexp_of_t = sexp_of_t
+      include%template
+        Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+          type nonrec t = t [@@deriving compare ~localize, sexp_of]
         end)
 
       let quickcheck_generator = Base_quickcheck.quickcheck_generator_int32
@@ -890,12 +886,13 @@ end = struct
     end
 
     module Unsigned = struct
-      type t = Base.Int32.t [@@deriving equal, globalize, hash]
+      type t = Base.Int32.t [@@deriving equal ~localize, globalize, hash]
 
       let quickcheck_generator = Base_quickcheck.quickcheck_generator_int32
       let quickcheck_observer = Base_quickcheck.quickcheck_observer_int32
       let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int32
       let compare x y = Stdlib.Int32.unsigned_compare x y [@@inline always]
+      let%template[@mode local] compare x y = compare (globalize x) (globalize y)
 
       let typerep_of_t =
         Base.Portability_hacks.magic_portable__needs_base_and_core
@@ -1004,11 +1001,9 @@ end = struct
         end
       end
 
-      include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-          type nonrec t = t
-
-          let compare = compare
-          let sexp_of_t = sexp_of_t
+      include%template
+        Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+          type nonrec t = t [@@deriving compare ~localize, sexp_of]
         end)
     end
   end
@@ -1031,7 +1026,8 @@ module Uint32 = struct
 end
 
 module Int63 = struct
-  type t : immediate64 = Base.Int63.t [@@deriving compare, equal, hash, sexp]
+  type t : immediate64 = Base.Int63.t
+  [@@deriving compare ~localize, equal ~localize, hash, sexp]
 
   let globalize : local_ t -> t =
     match Base.Int63.Private.repr with
@@ -1039,11 +1035,9 @@ module Int63 = struct
     | Int64 -> [%globalize: Base.Int64.t]
   ;;
 
-  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-      type nonrec t = t
-
-      let compare = compare
-      let sexp_of_t = sexp_of_t
+  include%template
+    Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+      type nonrec t = t [@@deriving compare ~localize, sexp_of]
     end)
 
   let quickcheck_generator = Base_quickcheck.Generator.int63_uniform
@@ -1102,7 +1096,7 @@ module Int63 = struct
 end
 
 module Uint63 = struct
-  type t = Int63.t [@@deriving equal, globalize, hash]
+  type t = Int63.t [@@deriving equal ~localize, globalize, hash]
 
   let quickcheck_generator = Base_quickcheck.Generator.int63_uniform
   let quickcheck_observer = Base_quickcheck.Observer.int63
@@ -1112,6 +1106,8 @@ module Uint63 = struct
     (* x and y are sign-extended, which preserves the high bit *)
     Stdlib.Int64.unsigned_compare (Base.Int63.to_int64 x) (Base.Int63.to_int64 y)
   ;;
+
+  let%template[@mode local] compare x y = compare (globalize x) (globalize y)
 
   let typerep_of_t =
     Base.Portability_hacks.magic_portable__needs_base_and_core
@@ -1199,22 +1195,19 @@ module Uint63 = struct
     end
   end
 
-  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-      type nonrec t = t
-
-      let compare = compare
-      let sexp_of_t = sexp_of_t
+  include%template
+    Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+      type nonrec t = t [@@deriving compare ~localize, sexp_of]
     end)
 end
 
 module Int64 = struct
-  type t = Base.Int64.t [@@deriving compare, equal, globalize, hash, sexp]
+  type t = Base.Int64.t
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
 
-  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-      type nonrec t = t
-
-      let compare = compare
-      let sexp_of_t = sexp_of_t
+  include%template
+    Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+      type nonrec t = t [@@deriving compare ~localize, sexp_of]
     end)
 
   let quickcheck_generator = Base_quickcheck.quickcheck_generator_int64
@@ -1272,12 +1265,13 @@ module Int64 = struct
 end
 
 module Uint64 = struct
-  type t = Base.Int64.t [@@deriving equal, globalize, hash]
+  type t = Base.Int64.t [@@deriving equal ~localize, globalize, hash]
 
   let quickcheck_generator = Base_quickcheck.quickcheck_generator_int64
   let quickcheck_observer = Base_quickcheck.quickcheck_observer_int64
   let quickcheck_shrinker = Base_quickcheck.quickcheck_shrinker_int64
   let compare = Stdlib.Int64.unsigned_compare
+  let%template[@mode local] compare x y = compare (globalize x) (globalize y)
 
   let typerep_of_t =
     Base.Portability_hacks.magic_portable__needs_base_and_core
@@ -1360,11 +1354,9 @@ module Uint64 = struct
     end
   end
 
-  include%template Base.Comparable.Make [@modality portable] [@inlined] (struct
-      type nonrec t = t
-
-      let compare = compare
-      let sexp_of_t = sexp_of_t
+  include%template
+    Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
+      type nonrec t = t [@@deriving compare ~localize, sexp_of]
     end)
 end
 

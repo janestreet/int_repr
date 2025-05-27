@@ -1,7 +1,9 @@
 @@ portable
 
 module type T = sig
-  type t [@@deriving compare, equal, globalize, hash, quickcheck, sexp, typerep]
+  type t
+  [@@deriving
+    compare ~localize, equal ~localize, globalize, hash, quickcheck, sexp, typerep]
 
   val signed : bool
   val num_bits : int
@@ -11,7 +13,8 @@ module type T = sig
   val max_value : t
 
   include Ppx_hash_lib.Hashable.S with type t := t
-  include Base.Comparisons.S with type t := t
+
+  include%template Base.Comparisons.S [@mode local] with type t := t
 
   module O : sig
     include Base.Comparisons.Infix with type t := t
