@@ -5,4 +5,4 @@
  (flags :standard -w -55)
  (libraries base)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -require-template-extension)))

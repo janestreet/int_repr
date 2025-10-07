@@ -1,5 +1,9 @@
+@@ portable
+
 module type T = sig
-  type t [@@deriving compare, equal, globalize, hash, quickcheck, sexp, typerep]
+  type t
+  [@@deriving
+    compare ~localize, equal ~localize, globalize, hash, quickcheck, sexp, typerep]
 
   val signed : bool
   val num_bits : int
@@ -9,7 +13,8 @@ module type T = sig
   val max_value : t
 
   include Ppx_hash_lib.Hashable.S with type t := t
-  include Base.Comparisons.S with type t := t
+
+  include%template Base.Comparisons.S [@mode local] with type t := t
 
   module O : sig
     include Base.Comparisons.Infix with type t := t
@@ -246,8 +251,11 @@ module Uint64 : sig
   (* "Base" conversions. *)
   val of_base_int64_trunc : Base.Int64.t -> t
   val of_base_int64_exn : Base.Int64.t -> t
-  val to_base_int64_trunc : t -> Base.Int64.t
-  val to_base_int64_exn : t -> Base.Int64.t
+
+  val%template to_base_int64_trunc : t @ m -> Base.Int64.t @ m
+  [@@mode m = (global, local)]
+
+  val%template to_base_int64_exn : t @ m -> Base.Int64.t @ m [@@mode m = (global, local)]
 
   (* Same-signedness conversions. *)
   val of_uint8 : uint8 -> t
@@ -380,8 +388,8 @@ module type Set_functions = sig
   val set_int64_ne : local_ t -> int -> local_ Base.Int64.t -> unit
 end
 
-module Make_get (F : Get_functions) : Get with type t := F.t
-module Make_set (F : Set_functions) : Set with type t := F.t
+module%template.portable Make_get (F : Get_functions) : Get with type t := F.t
+module%template.portable Make_set (F : Set_functions) : Set with type t := F.t
 
 module Bytes : sig
   include Get with type t := Bytes.t
