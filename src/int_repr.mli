@@ -268,57 +268,57 @@ module Uint64 : sig
   val of_int64_exn : int64 -> t
 end
 
-module type Get = sig
+module type%template [@mode v = (immutable, read, read_write)] Get = sig
   type t
 
   (** {2 8-bit signed values} *)
 
-  val get_int8 : local_ t -> pos:int -> int8
+  val get_int8 : t @ local v -> pos:int -> int8
 
   (** {2 8-bit unsigned values} *)
 
-  val get_uint8 : local_ t -> pos:int -> uint8
+  val get_uint8 : t @ local v -> pos:int -> uint8
 
   (** {2 16-bit signed values} *)
 
-  val get_int16_le : local_ t -> pos:int -> int16
-  val get_int16_be : local_ t -> pos:int -> int16
+  val get_int16_le : t @ local v -> pos:int -> int16
+  val get_int16_be : t @ local v -> pos:int -> int16
 
   (** {2 16-bit unsigned values} *)
 
-  val get_uint16_le : local_ t -> pos:int -> uint16
-  val get_uint16_be : local_ t -> pos:int -> uint16
+  val get_uint16_le : t @ local v -> pos:int -> uint16
+  val get_uint16_be : t @ local v -> pos:int -> uint16
 
   (** {2 32-bit signed values} *)
 
-  val get_int32_le : local_ t -> pos:int -> int32
-  val get_int32_be : local_ t -> pos:int -> int32
+  val get_int32_le : t @ local v -> pos:int -> int32
+  val get_int32_be : t @ local v -> pos:int -> int32
 
   (** {2 32-bit unsigned values} *)
 
-  val get_uint32_le : local_ t -> pos:int -> uint32
-  val get_uint32_be : local_ t -> pos:int -> uint32
+  val get_uint32_le : t @ local v -> pos:int -> uint32
+  val get_uint32_be : t @ local v -> pos:int -> uint32
 
   (** {2 64-bit signed values} *)
 
-  val get_int64_le : local_ t -> pos:int -> int64
-  val get_int64_be : local_ t -> pos:int -> int64
+  val get_int64_le : t @ local v -> pos:int -> int64
+  val get_int64_be : t @ local v -> pos:int -> int64
 
   (** {2 64-bit unsigned values} *)
 
-  val get_uint64_le : local_ t -> pos:int -> uint64
-  val get_uint64_be : local_ t -> pos:int -> uint64
+  val get_uint64_le : t @ local v -> pos:int -> uint64
+  val get_uint64_be : t @ local v -> pos:int -> uint64
 
   module Local : sig
     (** {2 64-bit signed values} *)
 
-    val get_int64_le : local_ t -> pos:int -> local_ int64
-    val get_int64_be : local_ t -> pos:int -> local_ int64
+    val get_int64_le : t @ local v -> pos:int -> int64 @ local
+    val get_int64_be : t @ local v -> pos:int -> int64 @ local
 
     (** {2 64-bit unsigned values} *)
 
-    val get_uint64_le : local_ t -> pos:int -> local_ uint64
-    val get_uint64_be : local_ t -> pos:int -> local_ uint64
+    val get_uint64_le : t @ local v -> pos:int -> uint64 @ local
+    val get_uint64_be : t @ local v -> pos:int -> uint64 @ local
   end
 end
 
@@ -364,39 +364,46 @@ module type Set = sig
   val set_uint64_be : local_ t -> pos:int -> local_ uint64 -> unit
 end
 
-module type Get_functions = sig
+module type%template Get_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
-  val get_uint8 : local_ t -> int -> Base.Int.t
-  val get_uint16_ne : local_ t -> int -> Base.Int.t
-  val get_int32_ne : local_ t -> int -> Base.Int32.t
-  val get_int64_ne : local_ t -> int -> Base.Int64.t
+  val get_uint8 : t @ local v -> int -> Base.Int.t
+  val get_uint16_ne : t @ local v -> int -> Base.Int.t
+  val get_int32_ne : t @ local v -> int -> Base.Int32.t
+  val get_int64_ne : t @ local v -> int -> Base.Int64.t
 
   module Local : sig
-    val get_int64_ne : local_ t -> int -> local_ Base.Int64.t
+    val get_int64_ne : t @ local v -> int -> Base.Int64.t @ local
   end
 end
+[@@mode v = (immutable, read, read_write)]
 
 module type Set_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
-  val set_uint8 : local_ t -> int -> Base.Int.t -> unit
-  val set_uint16_ne : local_ t -> int -> Base.Int.t -> unit
-  val set_int32_ne : local_ t -> int -> local_ Base.Int32.t -> unit
-  val set_int64_ne : local_ t -> int -> local_ Base.Int64.t -> unit
+  val set_uint8 : t @ local -> int -> Base.Int.t -> unit
+  val set_uint16_ne : t @ local -> int -> Base.Int.t -> unit
+  val set_int32_ne : t @ local -> int -> Base.Int32.t @ local -> unit
+  val set_int64_ne : t @ local -> int -> Base.Int64.t @ local -> unit
 end
 
-module%template.portable Make_get (F : Get_functions) : Get with type t := F.t
+module%template.portable
+  [@mode v = (immutable, read, read_write)] Make_get
+    (F : Get_functions
+  [@mode v]) : Get [@mode v] with type t := F.t
+
 module%template.portable Make_set (F : Set_functions) : Set with type t := F.t
 
 module Bytes : sig
-  include Get with type t := Bytes.t
+  include%template Get [@mode read] with type t := Bytes.t
+
   include Set with type t := Bytes.t
 
   module Unsafe : sig
-    include Get with type t := Bytes.t
+    include%template Get [@mode read] with type t := Bytes.t
+
     include Set with type t := Bytes.t
   end
 end

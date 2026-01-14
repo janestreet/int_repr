@@ -1360,57 +1360,57 @@ module Uint64 = struct
     end)
 end
 
-module type Get = sig
+module type%template [@mode v = (immutable, read, read_write)] Get = sig
   type t
 
   (* 8-bit signed values *)
 
-  val get_int8 : local_ t -> pos:int -> int8
+  val get_int8 : t @ local v -> pos:int -> int8
 
   (* 8-bit unsigned values *)
 
-  val get_uint8 : local_ t -> pos:int -> uint8
+  val get_uint8 : t @ local v -> pos:int -> uint8
 
   (* 16-bit signed values *)
 
-  val get_int16_le : local_ t -> pos:int -> int16
-  val get_int16_be : local_ t -> pos:int -> int16
+  val get_int16_le : t @ local v -> pos:int -> int16
+  val get_int16_be : t @ local v -> pos:int -> int16
 
   (* 16-bit unsigned values *)
 
-  val get_uint16_le : local_ t -> pos:int -> uint16
-  val get_uint16_be : local_ t -> pos:int -> uint16
+  val get_uint16_le : t @ local v -> pos:int -> uint16
+  val get_uint16_be : t @ local v -> pos:int -> uint16
 
   (* 32-bit signed values *)
 
-  val get_int32_le : local_ t -> pos:int -> int32
-  val get_int32_be : local_ t -> pos:int -> int32
+  val get_int32_le : t @ local v -> pos:int -> int32
+  val get_int32_be : t @ local v -> pos:int -> int32
 
   (* 32-bit unsigned values *)
 
-  val get_uint32_le : local_ t -> pos:int -> uint32
-  val get_uint32_be : local_ t -> pos:int -> uint32
+  val get_uint32_le : t @ local v -> pos:int -> uint32
+  val get_uint32_be : t @ local v -> pos:int -> uint32
 
   (* 64-bit signed values *)
 
-  val get_int64_le : local_ t -> pos:int -> int64
-  val get_int64_be : local_ t -> pos:int -> int64
+  val get_int64_le : t @ local v -> pos:int -> int64
+  val get_int64_be : t @ local v -> pos:int -> int64
 
   (* 64-bit unsigned values *)
 
-  val get_uint64_le : local_ t -> pos:int -> uint64
-  val get_uint64_be : local_ t -> pos:int -> uint64
+  val get_uint64_le : t @ local v -> pos:int -> uint64
+  val get_uint64_be : t @ local v -> pos:int -> uint64
 
   module Local : sig
     (* 64-bit signed values *)
 
-    val get_int64_le : local_ t -> pos:int -> local_ int64
-    val get_int64_be : local_ t -> pos:int -> local_ int64
+    val get_int64_le : t @ local v -> pos:int -> int64 @ local
+    val get_int64_be : t @ local v -> pos:int -> int64 @ local
 
     (* 64-bit unsigned values *)
 
-    val get_uint64_le : local_ t -> pos:int -> local_ uint64
-    val get_uint64_be : local_ t -> pos:int -> local_ uint64
+    val get_uint64_le : t @ local v -> pos:int -> uint64 @ local
+    val get_uint64_be : t @ local v -> pos:int -> uint64 @ local
   end
 end
 
@@ -1456,19 +1456,20 @@ module type Set = sig
   val set_uint64_be : local_ t -> pos:int -> local_ uint64 -> unit
 end
 
-module type Get_functions = sig
+module type%template Get_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
-  val get_uint8 : local_ t -> int -> Base.Int.t
-  val get_uint16_ne : local_ t -> int -> Base.Int.t
-  val get_int32_ne : local_ t -> int -> Base.Int32.t
-  val get_int64_ne : local_ t -> int -> Base.Int64.t
+  val get_uint8 : t @ local v -> int -> Base.Int.t
+  val get_uint16_ne : t @ local v -> int -> Base.Int.t
+  val get_int32_ne : t @ local v -> int -> Base.Int32.t
+  val get_int64_ne : t @ local v -> int -> Base.Int64.t
 
   module Local : sig
-    val get_int64_ne : local_ t -> int -> local_ Base.Int64.t
+    val get_int64_ne : t @ local v -> int -> Base.Int64.t @ local
   end
 end
+[@@mode v = (immutable, read, read_write)]
 
 module type Set_functions = sig
   type t
@@ -1501,7 +1502,10 @@ external uint64_to_int64
   @@ portable
   = "%identity"
 
-module%template.portable Make_get (F : Get_functions) : Get with type t := F.t = struct
+module%template.portable
+  [@mode v = (immutable, read, read_write)] Make_get
+    (F : Get_functions
+  [@mode v]) : Get [@mode v] with type t := F.t = struct
   (* 8-bit signed values *)
 
   let get_int8 t ~pos = Int8.of_base_int_trunc (F.get_uint8 t pos)
@@ -1677,25 +1681,36 @@ end
 module Bytes0Unsafe = struct
   type t = Bytes.t
 
-  external get_uint8 : local_ Bytes.t -> int -> int @@ portable = "%bytes_unsafe_get"
-  external get_uint16_ne : local_ Bytes.t -> int -> int @@ portable = "%caml_bytes_get16u"
+  external get_uint8
+    :  Bytes.t @ local read
+    -> int
+    -> int
+    @@ portable
+    = "%bytes_unsafe_get"
+
+  external get_uint16_ne
+    :  Bytes.t @ local read
+    -> int
+    -> int
+    @@ portable
+    = "%caml_bytes_get16u"
 
   external get_int32_ne
-    :  local_ Bytes.t
+    :  Bytes.t @ local read
     -> int
     -> Stdlib.Int32.t
     @@ portable
     = "%caml_bytes_get32u"
 
   external get_int64_ne
-    :  local_ Bytes.t
+    :  Bytes.t @ local read
     -> int
     -> Stdlib.Int64.t
     @@ portable
     = "%caml_bytes_get64u"
 
   external set_uint8
-    :  local_ Bytes.t
+    :  Bytes.t @ local
     -> int
     -> int
     -> unit
@@ -1703,7 +1718,7 @@ module Bytes0Unsafe = struct
     = "%bytes_unsafe_set"
 
   external set_uint16_ne
-    :  local_ Bytes.t
+    :  Bytes.t @ local
     -> int
     -> int
     -> unit
@@ -1711,26 +1726,26 @@ module Bytes0Unsafe = struct
     = "%caml_bytes_set16u"
 
   external set_int32_ne
-    :  local_ Bytes.t
+    :  Bytes.t @ local
     -> int
-    -> local_ Stdlib.Int32.t
+    -> Stdlib.Int32.t @ local
     -> unit
     @@ portable
     = "%caml_bytes_set32u"
 
   external set_int64_ne
-    :  local_ Bytes.t
+    :  Bytes.t @ local
     -> int
-    -> local_ Stdlib.Int64.t
+    -> Stdlib.Int64.t @ local
     -> unit
     @@ portable
     = "%caml_bytes_set64u"
 
   module Local = struct
     external get_int64_ne
-      :  local_ Bytes.t
+      :  Bytes.t @ local read
       -> int
-      -> local_ Stdlib.Int64.t
+      -> Stdlib.Int64.t @ local
       @@ portable
       = "%caml_bytes_get64u"
   end
@@ -1740,10 +1755,16 @@ module%template Bytes = struct
   module Bytes = struct
     type t = bytes
 
-    external set_int8 : local_ bytes -> int -> int -> unit @@ portable = "%bytes_safe_set"
+    external set_int8
+      :  bytes @ local
+      -> int
+      -> int
+      -> unit
+      @@ portable
+      = "%bytes_safe_set"
 
     external set_int16_ne
-      :  local_ bytes
+      :  bytes @ local
       -> int
       -> int
       -> unit
@@ -1751,34 +1772,40 @@ module%template Bytes = struct
       = "%caml_bytes_set16"
 
     external set_int32_ne
-      :  local_ bytes
+      :  bytes @ local
       -> int
-      -> local_ Stdlib.Int32.t
+      -> Stdlib.Int32.t @ local
       -> unit
       @@ portable
       = "%caml_bytes_set32"
 
-    external get_uint8 : local_ bytes -> int -> int @@ portable = "%bytes_safe_get"
-    external get_uint16_ne : local_ bytes -> int -> int @@ portable = "%caml_bytes_get16"
+    external get_uint8 : bytes @ local read -> int -> int @@ portable = "%bytes_safe_get"
+
+    external get_uint16_ne
+      :  bytes @ local read
+      -> int
+      -> int
+      @@ portable
+      = "%caml_bytes_get16"
 
     external get_int32_ne
-      :  local_ bytes
+      :  bytes @ local read
       -> int
       -> Stdlib.Int32.t
       @@ portable
       = "%caml_bytes_get32"
 
     external get_int64_ne
-      :  local_ bytes
+      :  bytes @ local read
       -> int
       -> Stdlib.Int64.t
       @@ portable
       = "%caml_bytes_get64"
 
     external set_int64_ne
-      :  local_ bytes
+      :  bytes @ local
       -> int
-      -> local_ Stdlib.Int64.t
+      -> Stdlib.Int64.t @ local
       -> unit
       @@ portable
       = "%caml_bytes_set64"
@@ -1788,19 +1815,19 @@ module%template Bytes = struct
 
     module Local = struct
       external get_int64_ne
-        :  local_ bytes
+        :  bytes @ local read
         -> int
-        -> local_ Stdlib.Int64.t
+        -> Stdlib.Int64.t @ local
         @@ portable
         = "%caml_bytes_get64"
     end
   end
 
-  include Make_get [@modality portable] (Bytes)
+  include Make_get [@modality portable] [@mode read] (Bytes)
   include Make_set [@modality portable] (Bytes)
 
   module Unsafe = struct
-    include Make_get [@modality portable] (Bytes0Unsafe)
+    include Make_get [@modality portable] [@mode read] (Bytes0Unsafe)
     include Make_set [@modality portable] (Bytes0Unsafe)
   end
 end
