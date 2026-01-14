@@ -264,7 +264,7 @@ module Uint64 : sig
   val of_int64_exn : int64 -> t
 end
 
-module type Get = sig
+module type%template [@mode v = (immutable, read, read_write)] Get = sig
   type t
 
   (** {2 8-bit signed values} *)
@@ -360,7 +360,7 @@ module type Set = sig
   val set_uint64_be : t -> pos:int -> uint64 -> unit
 end
 
-module type Get_functions = sig
+module type%template Get_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
@@ -373,6 +373,7 @@ module type Get_functions = sig
     val get_int64_ne : t -> int -> Base.Int64.t
   end
 end
+[@@mode v = (immutable, read, read_write)]
 
 module type Set_functions = sig
   type t
@@ -384,15 +385,21 @@ module type Set_functions = sig
   val set_int64_ne : t -> int -> Base.Int64.t -> unit
 end
 
-module%template.portable Make_get (F : Get_functions) : Get with type t := F.t
+module%template.portable
+  [@mode v = (immutable, read, read_write)] Make_get
+    (F : Get_functions
+  [@mode v]) : Get [@mode v] with type t := F.t
+
 module%template.portable Make_set (F : Set_functions) : Set with type t := F.t
 
 module Bytes : sig
-  include Get with type t := Bytes.t
+  include%template Get [@mode read] with type t := Bytes.t
+
   include Set with type t := Bytes.t
 
   module Unsafe : sig
-    include Get with type t := Bytes.t
+    include%template Get [@mode read] with type t := Bytes.t
+
     include Set with type t := Bytes.t
   end
 end

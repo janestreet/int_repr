@@ -1354,7 +1354,7 @@ module Uint64 = struct
     end)
 end
 
-module type Get = sig
+module type%template [@mode v = (immutable, read, read_write)] Get = sig
   type t
 
   (* 8-bit signed values *)
@@ -1450,7 +1450,7 @@ module type Set = sig
   val set_uint64_be : t -> pos:int -> uint64 -> unit
 end
 
-module type Get_functions = sig
+module type%template Get_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
@@ -1463,6 +1463,7 @@ module type Get_functions = sig
     val get_int64_ne : t -> int -> Base.Int64.t
   end
 end
+[@@mode v = (immutable, read, read_write)]
 
 module type Set_functions = sig
   type t
@@ -1485,7 +1486,10 @@ external swap64
 external int64_to_uint64 : (int64[@local_opt]) -> (Uint64.t[@local_opt]) = "%identity"
 external uint64_to_int64 : (Uint64.t[@local_opt]) -> (int64[@local_opt]) = "%identity"
 
-module%template.portable Make_get (F : Get_functions) : Get with type t := F.t = struct
+module%template.portable
+  [@mode v = (immutable, read, read_write)] Make_get
+    (F : Get_functions
+  [@mode v]) : Get [@mode v] with type t := F.t = struct
   (* 8-bit signed values *)
 
   let get_int8 t ~pos = Int8.of_base_int_trunc (F.get_uint8 t pos)
@@ -1696,11 +1700,11 @@ module%template Bytes = struct
     end
   end
 
-  include Make_get [@modality portable] (Bytes)
+  include Make_get [@modality portable] [@mode read] (Bytes)
   include Make_set [@modality portable] (Bytes)
 
   module Unsafe = struct
-    include Make_get [@modality portable] (Bytes0Unsafe)
+    include Make_get [@modality portable] [@mode read] (Bytes0Unsafe)
     include Make_set [@modality portable] (Bytes0Unsafe)
   end
 end
