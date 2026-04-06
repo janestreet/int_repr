@@ -1,7 +1,13 @@
 module type T = sig
   type t
   [@@deriving
-    compare ~localize, equal ~localize, globalize, hash, quickcheck, sexp, typerep]
+    compare ~localize
+    , equal ~localize
+    , globalize
+    , hash
+    , quickcheck
+    , sexp ~stackify
+    , typerep]
 
   val signed : bool
   val num_bits : int
@@ -123,7 +129,7 @@ type uint64 = Base.Int64.t
 
 module Int8 = struct
   type t : immediate = Base.Int.t
-  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp ~stackify]
 
   include%template
     Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
@@ -217,7 +223,7 @@ end
 
 module Uint8 = struct
   type t : immediate = Base.Int.t
-  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp ~stackify]
 
   include%template
     Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
@@ -326,7 +332,7 @@ end
 
 module Int16 = struct
   type t : immediate = Base.Int.t
-  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp ~stackify]
 
   include%template
     Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
@@ -419,7 +425,7 @@ end
 
 module Uint16 = struct
   type t : immediate = Base.Int.t
-  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp ~stackify]
 
   include%template
     Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
@@ -584,7 +590,7 @@ end = struct
   module I = struct
     module Signed = struct
       type t : immediate = Base.Int.t
-      [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
+      [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp ~stackify]
 
       include%template
         Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
@@ -680,7 +686,7 @@ end = struct
 
     module Unsigned = struct
       type t : immediate = Base.Int.t
-      [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
+      [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp ~stackify]
 
       include%template
         Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
@@ -817,7 +823,7 @@ end = struct
   module N = struct
     module Signed = struct
       type t = Base.Int32.t
-      [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
+      [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp ~stackify]
 
       include%template
         Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
@@ -975,7 +981,10 @@ end = struct
       ;;
 
       (* Sexp conversions. *)
-      let sexp_of_t x = Base.Sexp.Atom (Stdlib.Printf.sprintf "%lu" x)
+      let%template[@alloc a = (heap, stack)] sexp_of_t (x @ local) =
+        let x = globalize x in
+        Base.Sexp.Atom (Stdlib.Printf.sprintf "%lu" x) [@exclave_if_stack a]
+      ;;
 
       let t_of_sexp sexp =
         match sexp with
@@ -1027,7 +1036,7 @@ end
 
 module Int63 = struct
   type t : immediate64 = Base.Int63.t
-  [@@deriving compare ~localize, equal ~localize, hash, sexp]
+  [@@deriving compare ~localize, equal ~localize, hash, sexp ~stackify]
 
   let globalize : local_ t -> t =
     match Base.Int63.Private.repr with
@@ -1166,7 +1175,9 @@ module Uint63 = struct
   let of_int63_exn x = exn x [@@inline always]
 
   (* Sexp conversions. *)
-  let sexp_of_t x = Base.Sexp.Atom (Stdlib.Printf.sprintf "%Lu" (to_base_int64 x))
+  let%template[@alloc a = (heap, stack)] sexp_of_t x =
+    Base.Sexp.Atom (Stdlib.Printf.sprintf "%Lu" (to_base_int64 x)) [@exclave_if_stack a]
+  ;;
 
   let t_of_sexp sexp =
     match sexp with
@@ -1203,7 +1214,7 @@ end
 
 module Int64 = struct
   type t = Base.Int64.t
-  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp]
+  [@@deriving compare ~localize, equal ~localize, globalize, hash, sexp ~stackify]
 
   include%template
     Base.Comparable.Make [@mode local] [@modality portable] [@inlined] (struct
@@ -1328,7 +1339,10 @@ module Uint64 = struct
   let of_int64_exn x = exn x [@@inline always]
 
   (* Sexp conversions. *)
-  let sexp_of_t x = Base.Sexp.Atom (Stdlib.Printf.sprintf "%Lu" x)
+  let%template[@alloc a = (heap, stack)] sexp_of_t x =
+    let x = globalize x in
+    Base.Sexp.Atom (Stdlib.Printf.sprintf "%Lu" x) [@exclave_if_stack a]
+  ;;
 
   let t_of_sexp sexp =
     match sexp with

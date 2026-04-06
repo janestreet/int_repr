@@ -3,7 +3,13 @@
 module type T = sig
   type t
   [@@deriving
-    compare ~localize, equal ~localize, globalize, hash, quickcheck, sexp, typerep]
+    compare ~localize
+    , equal ~localize
+    , globalize
+    , hash
+    , quickcheck
+    , sexp ~stackify
+    , typerep]
 
   val signed : bool
   val num_bits : int
