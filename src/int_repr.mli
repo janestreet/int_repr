@@ -1,13 +1,5 @@
 module type T = sig
-  type t
-  [@@deriving
-    compare ~localize
-    , equal ~localize
-    , globalize
-    , hash
-    , quickcheck
-    , sexp ~stackify
-    , typerep]
+  type t [@@deriving compare, equal, globalize, hash, quickcheck, sexp, typerep]
 
   val signed : bool
   val num_bits : int
@@ -17,8 +9,7 @@ module type T = sig
   val max_value : t
 
   include Ppx_hash_lib.Hashable.S with type t := t
-
-  include%template Base.Comparisons.S [@mode local] with type t := t
+  include Base.Comparisons.S with type t := t
 
   module O : sig
     include Base.Comparisons.Infix with type t := t
@@ -255,9 +246,8 @@ module Uint64 : sig
   (* "Base" conversions. *)
   val of_base_int64_trunc : Base.Int64.t -> t
   val of_base_int64_exn : Base.Int64.t -> t
-
-  val%template to_base_int64_trunc : t -> Base.Int64.t [@@mode m = (global, local)]
-  val%template to_base_int64_exn : t -> Base.Int64.t [@@mode m = (global, local)]
+  val to_base_int64_trunc : t -> Base.Int64.t
+  val to_base_int64_exn : t -> Base.Int64.t
 
   (* Same-signedness conversions. *)
   val of_uint8 : uint8 -> t
@@ -270,7 +260,7 @@ module Uint64 : sig
   val of_int64_exn : int64 -> t
 end
 
-module type%template [@mode v = (immutable, read, read_write)] Get = sig
+module type Get = sig
   type t
 
   (** {2 8-bit signed values} *)
@@ -366,7 +356,7 @@ module type Set = sig
   val set_uint64_be : t -> pos:int -> uint64 -> unit
 end
 
-module type%template Get_functions = sig
+module type Get_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
@@ -379,7 +369,6 @@ module type%template Get_functions = sig
     val get_int64_ne : t -> int -> Base.Int64.t
   end
 end
-[@@mode v = (immutable, read, read_write)]
 
 module type Set_functions = sig
   type t
@@ -391,21 +380,15 @@ module type Set_functions = sig
   val set_int64_ne : t -> int -> Base.Int64.t -> unit
 end
 
-module%template.portable
-  [@mode v = (immutable, read, read_write)] Make_get
-    (F : Get_functions
-  [@mode v]) : Get [@mode v] with type t := F.t
-
-module%template.portable Make_set (F : Set_functions) : Set with type t := F.t
+module Make_get (F : Get_functions) : Get with type t := F.t
+module Make_set (F : Set_functions) : Set with type t := F.t
 
 module Bytes : sig
-  include%template Get [@mode read] with type t := Bytes.t
-
+  include Get with type t := Bytes.t
   include Set with type t := Bytes.t
 
   module Unsafe : sig
-    include%template Get [@mode read] with type t := Bytes.t
-
+    include Get with type t := Bytes.t
     include Set with type t := Bytes.t
   end
 end
