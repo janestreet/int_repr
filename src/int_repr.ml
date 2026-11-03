@@ -38,7 +38,7 @@ let raise_cannot_repr ~mod_name ~to_string x =
 ;;
 
 let trunc_unsigned
-  : type a b. conv:(a -> b) -> logand:(local_ a -> local_ a -> a) -> mask:a -> a -> b
+  : type a b. conv:(a -> b) -> logand:(a @ local -> a @ local -> a) -> mask:a -> a -> b
   =
   fun ~conv ~logand ~mask x -> conv (logand x mask)
 [@@inline always]
@@ -47,11 +47,11 @@ let trunc_unsigned
 let exn_unsigned
   : type a b.
     conv:(a -> b)
-    -> logand:(local_ a -> local_ a -> a)
+    -> logand:(a @ local -> a @ local -> a)
     -> mask:a
-    -> equal:(local_ a -> local_ a -> bool)
+    -> equal:(a @ local -> a @ local -> bool)
     -> mod_name:string
-    -> to_string:(local_ a -> string)
+    -> to_string:(a @ local -> string)
     -> a
     -> b
   =
@@ -63,8 +63,8 @@ let exn_unsigned
 
 let trunc_signed
   : type a.
-    shift_left:(local_ a -> int -> a)
-    -> shift_right:(local_ a -> int -> a)
+    shift_left:(a @ local -> int -> a)
+    -> shift_right:(a @ local -> int -> a)
     -> shift:int
     -> a
     -> a
@@ -75,12 +75,12 @@ let trunc_signed
 
 let exn_signed
   : type a.
-    shift_left:(local_ a -> int -> a)
-    -> shift_right:(local_ a -> int -> a)
+    shift_left:(a @ local -> int -> a)
+    -> shift_right:(a @ local -> int -> a)
     -> shift:int
-    -> equal:(local_ a -> local_ a -> bool)
+    -> equal:(a @ local -> a @ local -> bool)
     -> mod_name:string
-    -> to_string:(local_ a -> string)
+    -> to_string:(a @ local -> string)
     -> a
     -> a
   =
@@ -1038,7 +1038,7 @@ module Int63 = struct
   type t : immediate64 = Base.Int63.t
   [@@deriving compare ~localize, equal ~localize, hash, sexp ~stackify]
 
-  let globalize : local_ t -> t =
+  let globalize : t @ local -> t =
     match Base.Int63.Private.repr with
     | Int -> [%globalize: Base.Int.t]
     | Int64 -> [%globalize: Base.Int64.t]
@@ -1433,41 +1433,41 @@ module type Set = sig
 
   (* 8-bit signed values *)
 
-  val set_int8 : local_ t -> pos:int -> int8 -> unit
+  val set_int8 : t @ local -> pos:int -> int8 -> unit
 
   (* 8-bit unsigned values *)
 
-  val set_uint8 : local_ t -> pos:int -> uint8 -> unit
+  val set_uint8 : t @ local -> pos:int -> uint8 -> unit
 
   (* 16-bit signed values *)
 
-  val set_int16_le : local_ t -> pos:int -> int16 -> unit
-  val set_int16_be : local_ t -> pos:int -> int16 -> unit
+  val set_int16_le : t @ local -> pos:int -> int16 -> unit
+  val set_int16_be : t @ local -> pos:int -> int16 -> unit
 
   (* 16-bit unsigned values *)
 
-  val set_uint16_le : local_ t -> pos:int -> uint16 -> unit
-  val set_uint16_be : local_ t -> pos:int -> uint16 -> unit
+  val set_uint16_le : t @ local -> pos:int -> uint16 -> unit
+  val set_uint16_be : t @ local -> pos:int -> uint16 -> unit
 
   (* 32-bit signed values *)
 
-  val set_int32_le : local_ t -> pos:int -> local_ int32 -> unit
-  val set_int32_be : local_ t -> pos:int -> local_ int32 -> unit
+  val set_int32_le : t @ local -> pos:int -> int32 @ local -> unit
+  val set_int32_be : t @ local -> pos:int -> int32 @ local -> unit
 
   (* 32-bit unsigned values *)
 
-  val set_uint32_le : local_ t -> pos:int -> local_ uint32 -> unit
-  val set_uint32_be : local_ t -> pos:int -> local_ uint32 -> unit
+  val set_uint32_le : t @ local -> pos:int -> uint32 @ local -> unit
+  val set_uint32_be : t @ local -> pos:int -> uint32 @ local -> unit
 
   (* 64-bit signed values *)
 
-  val set_int64_le : local_ t -> pos:int -> local_ int64 -> unit
-  val set_int64_be : local_ t -> pos:int -> local_ int64 -> unit
+  val set_int64_le : t @ local -> pos:int -> int64 @ local -> unit
+  val set_int64_be : t @ local -> pos:int -> int64 @ local -> unit
 
   (* 64-bit unsigned values *)
 
-  val set_uint64_le : local_ t -> pos:int -> local_ uint64 -> unit
-  val set_uint64_be : local_ t -> pos:int -> local_ uint64 -> unit
+  val set_uint64_le : t @ local -> pos:int -> uint64 @ local -> unit
+  val set_uint64_be : t @ local -> pos:int -> uint64 @ local -> unit
 end
 
 module type%template Get_functions = sig
@@ -1489,10 +1489,10 @@ module type Set_functions = sig
   type t
 
   (* The following functions must use native endianness (hence the `_ne` suffix). *)
-  val set_uint8 : local_ t -> int -> Base.Int.t -> unit
-  val set_uint16_ne : local_ t -> int -> Base.Int.t -> unit
-  val set_int32_ne : local_ t -> int -> local_ Base.Int32.t -> unit
-  val set_int64_ne : local_ t -> int -> local_ Base.Int64.t -> unit
+  val set_uint8 : t @ local -> int -> Base.Int.t -> unit
+  val set_uint16_ne : t @ local -> int -> Base.Int.t -> unit
+  val set_int32_ne : t @ local -> int -> Base.Int32.t @ local -> unit
+  val set_int64_ne : t @ local -> int -> Base.Int64.t @ local -> unit
 end
 
 external swap16 : int -> int @@ portable = "%bswap16"
@@ -1517,7 +1517,8 @@ external uint64_to_int64
   = "%identity"
 
 module%template.portable
-  [@mode v = (immutable, read, read_write)] Make_get
+  [@mode v = (immutable, read, read_write)]
+  Make_get
     (F : Get_functions
   [@mode v]) : Get [@mode v] with type t := F.t = struct
   (* 8-bit signed values *)
@@ -1849,24 +1850,24 @@ end
 module String0 = struct
   include String
 
-  external get_uint8 : local_ String.t -> int -> int @@ portable = "%string_safe_get"
+  external get_uint8 : String.t @ local -> int -> int @@ portable = "%string_safe_get"
 
   external get_uint16_ne
-    :  local_ String.t
+    :  String.t @ local
     -> int
     -> int
     @@ portable
     = "%caml_string_get16"
 
   external get_int32_ne
-    :  local_ String.t
+    :  String.t @ local
     -> int
     -> Stdlib.Int32.t
     @@ portable
     = "%caml_string_get32"
 
   external get_int64_ne
-    :  local_ String.t
+    :  String.t @ local
     -> int
     -> Stdlib.Int64.t
     @@ portable
@@ -1874,9 +1875,9 @@ module String0 = struct
 
   module Local = struct
     external get_int64_ne
-      :  local_ String.t
+      :  String.t @ local
       -> int
-      -> local_ Stdlib.Int64.t
+      -> Stdlib.Int64.t @ local
       @@ portable
       = "%caml_string_get64"
   end
@@ -1885,24 +1886,24 @@ end
 module String0Unsafe = struct
   type t = String.t
 
-  external get_uint8 : local_ String.t -> int -> int @@ portable = "%string_unsafe_get"
+  external get_uint8 : String.t @ local -> int -> int @@ portable = "%string_unsafe_get"
 
   external get_uint16_ne
-    :  local_ String.t
+    :  String.t @ local
     -> int
     -> int
     @@ portable
     = "%caml_string_get16u"
 
   external get_int32_ne
-    :  local_ String.t
+    :  String.t @ local
     -> int
     -> Stdlib.Int32.t
     @@ portable
     = "%caml_string_get32u"
 
   external get_int64_ne
-    :  local_ String.t
+    :  String.t @ local
     -> int
     -> Stdlib.Int64.t
     @@ portable
@@ -1910,9 +1911,9 @@ module String0Unsafe = struct
 
   module Local = struct
     external get_int64_ne
-      :  local_ String.t
+      :  String.t @ local
       -> int
-      -> local_ Stdlib.Int64.t
+      -> Stdlib.Int64.t @ local
       @@ portable
       = "%caml_string_get64u"
   end
